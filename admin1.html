@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DhamanPay | Admin Dashboard</title>
+    <link rel="icon" type="image/png" href="logo.png">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -964,7 +965,7 @@
       <div class="section-title-row">
         <div>
           <p class="section-label">Users</p>
-          <h2 class="section-title">Wallet Tools</h2>
+          <h2 class="section-title">Wallet Lookup</h2>
         </div>
       </div>
 
@@ -987,23 +988,13 @@
         </div>
 
         <div class="dp-glass dp-panel">
-          <h3 class="dp-panel-title">Add Money</h3>
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="addMoneyUserId">User ID</label>
-              <input class="dp-input" id="addMoneyUserId" placeholder="User ID">
-            </div>
-            <div class="form-group">
-              <label for="addMoneyAmount">Amount</label>
-              <input class="dp-input" id="addMoneyAmount" type="number" min="1" placeholder="5000">
-            </div>
-          </div>
-          <div class="actions-row"><button class="dp-gold-btn" id="addMoneyBtn">Add Money</button></div>
+          <h3 class="dp-panel-title">User Wallet Review</h3>
+          <p class="dp-muted" style="line-height:1.7;">Admin can only inspect wallet balances here. Customer top-up is handled from the customer dashboard.</p>
         </div>
       </div>
 
       <div class="card-grid-3" style="margin-top:24px;">
-        <div class="dp-glass dp-panel"><h3 class="dp-panel-title">Customers</h3><p class="dp-muted">Use wallet funding for demo/testing.</p></div>
+        <div class="dp-glass dp-panel"><h3 class="dp-panel-title">Customers</h3><p class="dp-muted">Review customers and related wallet balances.</p></div>
         <div class="dp-glass dp-panel"><h3 class="dp-panel-title">Merchants</h3><p class="dp-muted">Monitor settlement destination accounts.</p></div>
         <div class="dp-glass dp-panel"><h3 class="dp-panel-title">Couriers</h3><p class="dp-muted">Proof and shipment activity is tied to orders.</p></div>
       </div>
@@ -1035,34 +1026,9 @@
       </div>
     </section>
 
-    <section class="view" id="audit-view">
-      <div class="section-title-row">
-        <div><p class="section-label">Audit</p><h2 class="section-title">Traceability</h2></div>
-      </div>
-      <div class="card-grid-2">
-        <div class="dp-glass dp-panel"><h3 class="dp-panel-title">Order History</h3><p class="dp-muted">Use /orders/{id}/history to inspect backend status transitions.</p></div>
-        <div class="dp-glass dp-panel"><h3 class="dp-panel-title">Ledger Correctness</h3><p class="dp-muted">Transactions show ADD_MONEY, frozen movements, refunds, and releases.</p></div>
-      </div>
-    </section>
-
     <section class="view" id="proofs-view">
       <div class="section-title-row"><div><p class="section-label">Proofs</p><h2 class="section-title">Proof Review</h2></div></div>
       <div class="dp-glass dp-panel"><div class="empty-state">Proof URLs appear inside order details after courier submits proof.</div></div>
-    </section>
-
-    <section class="view" id="analytics-view">
-      <div class="section-title-row"><div><p class="section-label">Analytics</p><h2 class="section-title">Analytics</h2></div></div>
-      <div class="dp-glass dp-panel"><div class="empty-state">Analytics cards can be added after final backend metrics are ready.</div></div>
-    </section>
-
-    <section class="view" id="settings-view">
-      <div class="section-title-row"><div><p class="section-label">Settings</p><h2 class="section-title">Settings</h2></div></div>
-      <div class="card-grid-4">
-        <div class="dp-glass dp-panel"><h3 class="dp-panel-title">Fees</h3><p class="dp-muted">Future fee rules.</p></div>
-        <div class="dp-glass dp-panel"><h3 class="dp-panel-title">Coverage</h3><p class="dp-muted">Wilaya coverage.</p></div>
-        <div class="dp-glass dp-panel"><h3 class="dp-panel-title">Verification</h3><p class="dp-muted">Merchant and courier checks.</p></div>
-        <div class="dp-glass dp-panel"><h3 class="dp-panel-title">Policy</h3><p class="dp-muted">Dispute rules.</p></div>
-      </div>
     </section>
   </main>
 
@@ -1091,10 +1057,7 @@
         ['users-view', 'Wallets'],
         ['transactions-view', 'Transactions'],
         ['rules-view', 'Rules'],
-        ['audit-view', 'Audit'],
-        ['proofs-view', 'Proofs'],
-        ['analytics-view', 'Analytics'],
-        ['settings-view', 'Settings']
+        ['proofs-view', 'Proofs']
       ];
 
       function byId(id) { return document.getElementById(id); }
@@ -1490,24 +1453,6 @@
         }
       }
 
-      async function addMoney() {
-        const userId = value('addMoneyUserId');
-        const amount = Number(value('addMoneyAmount'));
-        if (!userId || !amount) return showMessage('Enter user ID and amount.', false);
-        try {
-          await apiFetch('/wallets/add-money', {
-            method: 'POST',
-            body: { user_id: Number(userId), amount }
-          });
-          showMessage('Money added to wallet.');
-          if (value('walletUserIdInput') === userId) await loadWallet();
-          await loadTransactions();
-        } catch (error) {
-          console.error('ADD MONEY ERROR:', error);
-          showMessage(error.message || 'Failed to add money.', false);
-        }
-      }
-
       async function loadAll() {
         await loadMeData();
         await Promise.allSettled([loadOrders(), loadDisputes(), loadTransactions()]);
@@ -1543,7 +1488,6 @@
         byId('releaseBtn')?.addEventListener('click', () => settleOrder('release'));
         byId('refundBtn')?.addEventListener('click', () => settleOrder('refund'));
         byId('loadWalletBtn')?.addEventListener('click', loadWallet);
-        byId('addMoneyBtn')?.addEventListener('click', addMoney);
         byId('ordersSearch')?.addEventListener('input', renderOrders);
         byId('ordersStatusFilter')?.addEventListener('change', renderOrders);
       }
@@ -1563,6 +1507,5 @@
       });
     })();
   </script>
-    <script src="admin.js"></script>
 </body>
 </html>

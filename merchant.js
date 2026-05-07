@@ -186,29 +186,53 @@ async function loadOrders() {
 // =======================
 function renderOrders() {
   const container = el("ordersList");
+  const empty = el("emptyState");
+
+  if (!container) return;
+
   container.innerHTML = "";
 
-  if (!orders.length) {
-    el("emptyState").style.display = "block";
+  const searchValue = (el("ordersSearch")?.value || "").trim().toLowerCase();
+  const statusValue = el("ordersStatusFilter")?.value || "all";
+
+  const filteredOrders = orders.filter(o => {
+    // search based on ONE thing only: order ID
+    const orderId = String(o.id || "").toLowerCase();
+
+    const matchesSearch =
+      !searchValue || orderId.includes(searchValue);
+
+    const matchesStatus =
+      statusValue === "all" || o.status === statusValue;
+
+    return matchesSearch && matchesStatus;
+  });
+
+  if (!filteredOrders.length) {
+    if (empty) {
+      empty.style.display = "block";
+      empty.textContent = searchValue || statusValue !== "all"
+        ? "No orders match your search."
+        : "No orders yet. Create your first order to see it here.";
+    }
     return;
   }
 
-  el("emptyState").style.display = "none";
+  if (empty) empty.style.display = "none";
 
-  orders.forEach(o => {
+  filteredOrders.forEach(o => {
     const div = document.createElement("div");
     div.className = "list-card";
 
     div.innerHTML = `
       <b>#${o.id}</b> — ${o.status}<br>
-      ${o.product_name} | ${o.amount} DZD<br>
-      ${o.delivery_address}
+      ${o.product_name || "—"} | ${o.amount || 0} DZD<br>
+      ${o.delivery_address || "—"}
     `;
 
     container.appendChild(div);
   });
 }
-
 // =======================
 // STATS
 // =======================
@@ -260,7 +284,14 @@ document.addEventListener("DOMContentLoaded", () => {
   el("searchCustomerBtn").onclick = searchCustomer;
   el("createOrderForm").onsubmit = createOrder;
   el("logoutBtn").onclick = logout;
-
+el("ordersSearch")?.addEventListener("input", renderOrders);
+el("ordersStatusFilter")?.addEventListener("change", renderOrders);
+el("refreshOrdersBtn")?.addEventListener("click", loadOrders);
+el("resetOrdersFilterBtn")?.addEventListener("click", () => {
+  el("ordersSearch").value = "";
+  el("ordersStatusFilter").value = "all";
+  renderOrders();
+});
   loadProfile();
   loadOrders();
 

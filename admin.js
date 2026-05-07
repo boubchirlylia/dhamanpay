@@ -74,13 +74,6 @@ async function getWallet(userId) {
   return apiRequest(`/wallets/${userId}`);
 }
 
-async function addMoney(userId, amount) {
-  return apiRequest("/wallets/add-money", "POST", {
-    user_id: Number(userId),
-    amount: Number(amount)
-  });
-}
-
 async function logoutUser() {
   return apiRequest("/logout", "POST", {});
 }
@@ -133,7 +126,7 @@ async function loadDashboard() {
 }
 
 // =========================
-// RENDER FUNCTIONS
+// STATS
 // =========================
 function renderStats() {
   const pending = orders.filter(o =>
@@ -156,72 +149,114 @@ function renderStats() {
 // ORDER ACTIONS
 // =========================
 async function loadOrderDetails() {
-  const id = document.getElementById("actionOrderId").value;
-  if (!id) return showMessage("Enter order ID", false);
+  const id = document.getElementById("actionOrderId")?.value;
 
-  const res = await getOrderById(id);
-  selectedOrder = res.data;
+  if (!id) {
+    showMessage("Enter order ID", false);
+    return;
+  }
 
-  setText("selectedOrderStatus", selectedOrder.status);
-  setText("selectedOrderAmount", selectedOrder.amount + " DZD");
-  setText("selectedOrderCustomer", selectedOrder.customer_id);
-  setText("selectedOrderMerchant", selectedOrder.merchant_id);
+  try {
+    const res = await getOrderById(id);
+    selectedOrder = res.data;
 
-  document.getElementById("releaseBtn").disabled = false;
-  document.getElementById("refundBtn").disabled = false;
+    setText("selectedOrderStatus", selectedOrder.status);
+    setText("selectedOrderAmount", selectedOrder.amount + " DZD");
+    setText("selectedOrderCustomer", selectedOrder.customer_id);
+    setText("selectedOrderMerchant", selectedOrder.merchant_id);
+
+    const releaseBtn = document.getElementById("releaseBtn");
+    const refundBtn = document.getElementById("refundBtn");
+
+    if (releaseBtn) releaseBtn.disabled = false;
+    if (refundBtn) refundBtn.disabled = false;
+
+  } catch (err) {
+    console.error(err);
+    showMessage(err.message, false);
+  }
 }
 
 async function handleRelease() {
-  if (!selectedOrder) return;
+  if (!selectedOrder) {
+    showMessage("Load an order first", false);
+    return;
+  }
 
-  const note = document.getElementById("adminNote").value;
-  if (!note) return showMessage("Add admin note", false);
+  const note = document.getElementById("adminNote")?.value;
 
-  await releaseOrder(selectedOrder.id, note);
-  showMessage("Order released ✔");
+  if (!note) {
+    showMessage("Add admin note", false);
+    return;
+  }
 
-  await loadDashboard();
+  try {
+    await releaseOrder(selectedOrder.id, note);
+    showMessage("Order released ✔");
+    await loadDashboard();
+  } catch (err) {
+    console.error(err);
+    showMessage(err.message, false);
+  }
 }
 
 async function handleRefund() {
-  if (!selectedOrder) return;
+  if (!selectedOrder) {
+    showMessage("Load an order first", false);
+    return;
+  }
 
-  const note = document.getElementById("adminNote").value;
-  if (!note) return showMessage("Add admin note", false);
+  const note = document.getElementById("adminNote")?.value;
 
-  await refundOrder(selectedOrder.id, note);
-  showMessage("Order refunded ✔");
+  if (!note) {
+    showMessage("Add admin note", false);
+    return;
+  }
 
-  await loadDashboard();
+  try {
+    await refundOrder(selectedOrder.id, note);
+    showMessage("Order refunded ✔");
+    await loadDashboard();
+  } catch (err) {
+    console.error(err);
+    showMessage(err.message, false);
+  }
 }
 
 // =========================
-// WALLET
+// WALLET LOOKUP ONLY
 // =========================
 async function loadWalletUI() {
-  const id = document.getElementById("walletUserIdInput").value;
-  if (!id) return;
+  const id = document.getElementById("walletUserIdInput")?.value;
 
-  const res = await getWallet(id);
-  setText("walletAvailable", res.data.available_balance + " DZD");
-  setText("walletFrozen", res.data.frozen_balance + " DZD");
-}
+  if (!id) {
+    showMessage("Enter user ID", false);
+    return;
+  }
 
-async function addMoneyUI() {
-  const id = document.getElementById("addMoneyUserId").value;
-  const amount = document.getElementById("addMoneyAmount").value;
+  try {
+    const res = await getWallet(id);
 
-  if (!id || !amount) return;
+    setText("walletAvailable", res.data.available_balance + " DZD");
+    setText("walletFrozen", res.data.frozen_balance + " DZD");
 
-  await addMoney(id, amount);
-  showMessage("Money added ✔");
+    showMessage("Wallet loaded ✔");
+  } catch (err) {
+    console.error(err);
+    showMessage(err.message, false);
+  }
 }
 
 // =========================
 // LOGOUT
 // =========================
 async function logout() {
-  await logoutUser();
+  try {
+    await logoutUser();
+  } catch (err) {
+    console.warn("Logout API failed:", err.message);
+  }
+
   localStorage.removeItem("token");
   window.location.href = "login.html";
 }
@@ -235,26 +270,25 @@ function attachEvents() {
   document.getElementById("refundBtn")?.addEventListener("click", handleRefund);
 
   document.getElementById("loadWalletBtn")?.addEventListener("click", loadWalletUI);
-  document.getElementById("addMoneyBtn")?.addEventListener("click", addMoneyUI);
 
   document.getElementById("logoutBtn")?.addEventListener("click", logout);
 }
 
 // =========================
-// INIT WITH FIXED LOADER
+// INIT
 // =========================
 async function init() {
   const loader = document.getElementById("loader");
   const bar = document.getElementById("loader-bar");
 
   try {
-    // animate loader bar
     if (bar) bar.style.width = "100%";
 
     attachEvents();
 
     if (!getToken()) {
-      throw new Error("Not logged in");
+      window.location.href = "login.html";
+      return;
     }
 
     await loadDashboard();
@@ -263,12 +297,10 @@ async function init() {
     console.error(err);
     showMessage(err.message, false);
   } finally {
-    // 🔥 ALWAYS REMOVE LOADER
     setTimeout(() => {
       if (loader) loader.style.transform = "translateY(-100%)";
     }, 900);
   }
 }
 
-// START
 document.addEventListener("DOMContentLoaded", init);
