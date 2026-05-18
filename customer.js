@@ -3,30 +3,46 @@
 // ======================
 let orders = [];
 let user = null;
+let selectedOrder = null;
 
 // ======================
 // HELPERS
 // ======================
 function setText(id, value) {
   const el = document.getElementById(id);
-  if (el) el.textContent = value ?? "—";
+  if (el) {
+    el.textContent = value ?? "—";
+  }
+}
+
+function showMessage(text, type = "") {
+  const box = document.getElementById("confirmMessage");
+
+  if (!box) return;
+
+  box.classList.remove("hidden");
+  box.className = `message ${type}`;
+
+  box.textContent = text;
 }
 
 function showWalletMessage(text, type = "") {
-  const messageEl = document.getElementById("walletMessage");
-  if (!messageEl) return;
+  const box = document.getElementById("walletMessage");
 
-  messageEl.textContent = text;
-  messageEl.className = type ? `message ${type}` : "message";
+  if (!box) return;
+
+  box.className = `message ${type}`;
+  box.textContent = text;
 }
 
 // ======================
-// LOAD PROFILE
+// PROFILE
 // ======================
 async function loadProfile() {
   try {
     const res = await getMe();
-    user = res.data;
+
+    user = res.data || res;
 
     console.log("CUSTOMER:", user);
 
@@ -45,32 +61,63 @@ async function loadProfile() {
     console.error("PROFILE ERROR:", e);
   }
 }
+
+// ======================
+// WALLET
+// ======================
 async function loadWallet() {
   if (!user || !user.id) return;
 
   try {
     const res = await getWallet(user.id);
+
     const wallet = res.data || res;
 
-    setText("availableAmountText", `${wallet.available_balance ?? 0} DZD`);
-    setText("payableAmountText", `${wallet.frozen_balance ?? 0} DZD`);
-    setText("refundedAmountText", `${wallet.refunded_amount ?? 0} DZD`);
+    setText(
+      "availableAmountText",
+      `${wallet.available_balance ?? 0} DZD`
+    );
 
-    setText("heroWallet", `${wallet.available_balance ?? 0} DZD`);
-    setText("heroReserved", `${wallet.frozen_balance ?? 0} DZD`);
-    setText("heroRefunded", `${wallet.refunded_amount ?? 0} DZD`);
+    setText(
+      "payableAmountText",
+      `${wallet.frozen_balance ?? 0} DZD`
+    );
+
+    setText(
+      "refundedAmountText",
+      `${wallet.refunded_amount ?? 0} DZD`
+    );
+
+    setText(
+      "heroWallet",
+      `${wallet.available_balance ?? 0} DZD`
+    );
+
+    setText(
+      "heroReserved",
+      `${wallet.frozen_balance ?? 0} DZD`
+    );
+
+    setText(
+      "heroRefunded",
+      `${wallet.refunded_amount ?? 0} DZD`
+    );
 
   } catch (e) {
     console.error("WALLET ERROR:", e);
   }
 }
+
 // ======================
 // LOAD ORDERS
 // ======================
 async function loadOrders() {
   try {
     const res = await getOrders();
-    orders = res.data || [];
+
+    orders = Array.isArray(res.data)
+      ? res.data
+      : [];
 
     console.log("ORDERS:", orders);
 
@@ -78,7 +125,18 @@ async function loadOrders() {
     renderStats();
 
   } catch (e) {
+
     console.error("ORDERS ERROR:", e);
+
+    const container =
+      document.getElementById("ordersList");
+
+    if (container) {
+      container.innerHTML =
+        `<div class="empty-state">
+          Failed to load orders
+        </div>`;
+    }
   }
 }
 
@@ -86,134 +144,399 @@ async function loadOrders() {
 // RENDER ORDERS
 // ======================
 function renderOrders() {
-  const container = document.getElementById("ordersList");
-  const emptyState = document.getElementById("ordersEmptyState");
+
+  const container =
+    document.getElementById("ordersList");
+
+  const emptyState =
+    document.getElementById("ordersEmptyState");
 
   if (!container) return;
 
-  const searchValue = (document.getElementById("searchOrdersInput")?.value || "")
-    .trim()
-    .toLowerCase();
+  const searchValue =
+    (
+      document.getElementById("searchOrdersInput")
+        ?.value || ""
+    )
+      .trim()
+      .toLowerCase();
 
-  const statusValue = document.getElementById("statusOrdersFilter")?.value || "all";
+  const statusValue =
+    document.getElementById("statusOrdersFilter")
+      ?.value || "all";
 
-  const filteredOrders = orders.filter(o => {
-    // Search based on ONE thing only: order ID / order code
-    const orderKey = String(o.code || o.order_code || o.id || "").toLowerCase();
+  const filtered = orders.filter(order => {
 
-    const matchesSearch = !searchValue || orderKey.includes(searchValue);
-    const matchesStatus = statusValue === "all" || o.status === statusValue;
+    const key =
+      String(
+        order.code ||
+        order.order_code ||
+        order.id ||
+        ""
+      ).toLowerCase();
 
-    return matchesSearch && matchesStatus;
+    const matchSearch =
+      !searchValue ||
+      key.includes(searchValue);
+
+    const matchStatus =
+      statusValue === "all" ||
+      order.status === statusValue;
+
+    return matchSearch && matchStatus;
   });
 
   container.innerHTML = "";
 
-  if (!filteredOrders.length) {
+  if (!filtered.length) {
+
     if (emptyState) {
       emptyState.classList.remove("hidden");
-      emptyState.textContent = "No orders match your search or filter.";
     }
+
+    container.innerHTML =
+      `<div class="empty-state">
+        No orders found.
+      </div>`;
+
     return;
   }
 
-  if (emptyState) emptyState.classList.add("hidden");
+  if (emptyState) {
+    emptyState.classList.add("hidden");
+  }
 
-  filteredOrders.forEach(o => {
-    const div = document.createElement("div");
-    div.className = "list-card";
+  filtered.forEach(order => {
 
-    div.innerHTML = `
-      <b>#${o.id}</b> — ${o.status}<br>
-      ${o.product_name || o.productName || "—"} | ${o.amount || 0} DZD<br>
-      ${o.delivery_address || o.deliveryAddress || "—"}
-      <div style="margin-top:10px;">
-        ${actionButtons(o)}
+    const card = document.createElement("div");
+
+    card.className = "list-card";
+
+    card.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+        <div>
+          <h3 style="margin:0;">
+            ${order.code || "ORD-" + order.id}
+          </h3>
+
+          <p style="margin-top:8px;">
+            ${order.product_name || "Product"}
+          </p>
+
+          <p>
+            ${order.amount || 0} DZD
+          </p>
+
+          <p>
+            Status:
+            <b>${order.status || "UNKNOWN"}</b>
+          </p>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <button
+            class="dp-gold-btn"
+            onclick="selectOrder(${order.id})"
+          >
+            Open
+          </button>
+
+          ${
+            order.status === "SHIPPED" ||
+            order.status === "DELIVERED_PENDING"
+              ? `
+                <button
+                  class="dp-gold-btn"
+                  onclick="confirmOrderUI(${order.id})"
+                >
+                  Confirm
+                </button>
+              `
+              : ""
+          }
+        </div>
       </div>
     `;
 
-    container.appendChild(div);
+    container.appendChild(card);
   });
 }
 
 // ======================
-// ACTION BUTTONS
+// SELECT ORDER
 // ======================
-function actionButtons(order) {
-  if (order.status === "SHIPPED") {
-    return `
-      <button onclick="confirmOrderUI(${order.id})">Confirm</button>
-      <button onclick="cancelOrderUI(${order.id})">Cancel</button>
-    `;
-  }
+function selectOrder(id) {
 
-  if (order.status === "DELIVERED" || order.status === "DELIVERED_PENDING") {
-    return `
-      <button onclick="confirmOrderUI(${order.id})">Confirm</button>
-      <button onclick="openDisputeUI(${order.id})">Dispute</button>
-    `;
-  }
+  const order = orders.find(
+    o => String(o.id) === String(id)
+  );
 
-  return "";
+  if (!order) return;
+
+  selectedOrder = order;
+
+  setText(
+    "detailCode",
+    order.code || `ORD-${order.id}`
+  );
+
+  setText(
+    "detailStatusBadge",
+    order.status
+  );
+
+  setText(
+    "detailAmount",
+    `${order.amount || 0} DZD`
+  );
+
+  setText(
+    "detailMerchant",
+    order.merchant_name || "—"
+  );
+
+  setText(
+    "detailCourier",
+    order.courier_name || "—"
+  );
+
+  setText(
+    "detailTracking",
+    order.tracking_number || "—"
+  );
+
+  setText(
+    "detailPayment",
+    order.payment_method || "Escrow"
+  );
+
+  setText(
+    "detailDate",
+    order.created_at || "—"
+  );
+
+  // PREVIEW
+  setText(
+    "previewOrderCode",
+    order.code || `ORD-${order.id}`
+  );
+
+  setText(
+    "previewMerchant",
+    order.merchant_name || "—"
+  );
+
+  setText(
+    "previewCourier",
+    order.courier_name || "—"
+  );
+
+  setText(
+    "previewAmount",
+    `${order.amount || 0} DZD`
+  );
+
+  setText(
+    "previewStatus",
+    order.status
+  );
+
+  setText(
+    "confirmStatusBadge",
+    order.status
+  );
+
+  const input =
+    document.getElementById(
+      "confirmOrderCode"
+    );
+
+  if (input) {
+    input.value =
+      order.code || order.id;
+  }
 }
 
 // ======================
-// ORDER ACTIONS
+// FIND ORDER
 // ======================
-let selectedOrder = null;
+function loadOrderAction() {
 
-async function loadOrderAction() {
-  const input = document.getElementById("actionOrderId");
-  const orderId = input?.value.trim();
+  const input =
+    document.getElementById(
+      "confirmOrderCode"
+    );
 
-  if (!orderId) {
-    alert("Enter an order ID first.");
+  if (!input) return;
+
+  const value =
+    input.value.trim().toLowerCase();
+
+  if (!value) {
+    showMessage(
+      "Enter an order ID or code.",
+      "error"
+    );
     return;
   }
 
-  try {
-    const res = await getOrderById(orderId);
-    const order = res.data || res;
-    selectedOrder = order;
+  const order = orders.find(o => {
 
-    setText("previewOrderCode", order.code || order.order_code || order.id);
-    setText("previewMerchant", order.merchant_code || order.merchant_id || "—");
-    setText("previewCourier", order.courier_id || "Not assigned");
-    setText("previewAmount", `${order.amount || 0} DZD`);
-    setText("previewStatus", order.status || "UNKNOWN");
+    const id =
+      String(o.id).toLowerCase();
 
-  } catch (e) {
-    console.error("LOAD ORDER ERROR:", e);
-    alert(e.message || "Order not found.");
+    const code =
+      String(
+        o.code || o.order_code || ""
+      ).toLowerCase();
+
+    return id === value || code === value;
+  });
+
+  if (!order) {
+
+    showMessage(
+      "Order not found.",
+      "error"
+    );
+
+    return;
   }
+
+  selectOrder(order.id);
+
+  showMessage(
+    "Order loaded successfully.",
+    "success"
+  );
 }
-async function confirmOrderUI(id) {
+
+// ======================
+// CONFIRM ORDER
+// ======================
+async function confirmOrderUI(id = null) {
+
   try {
-    await confirmOrder(id);
+
+    const orderId =
+      id ||
+      selectedOrder?.id;
+
+    if (!orderId) {
+
+      showMessage(
+        "Load an order first.",
+        "error"
+      );
+
+      return;
+    }
+
+    await confirmOrder(orderId);
+
+    showMessage(
+      "Order confirmed successfully.",
+      "success"
+    );
+
     await loadOrders();
+
   } catch (e) {
-    alert(e.message);
+
+    console.error(
+      "CONFIRM ERROR:",
+      e
+    );
+
+    showMessage(
+      e.message ||
+      "Failed to confirm order.",
+      "error"
+    );
   }
 }
 
-async function cancelOrderUI(id) {
+// ======================
+// CANCEL ORDER
+// ======================
+async function cancelOrderUI(id = null) {
+
   try {
-    await cancelOrder(id);
+
+    const orderId =
+      id ||
+      selectedOrder?.id;
+
+    if (!orderId) {
+
+      showMessage(
+        "Load an order first.",
+        "error"
+      );
+
+      return;
+    }
+
+    await cancelOrder(orderId);
+
+    showMessage(
+      "Order cancelled.",
+      "success"
+    );
+
     await loadOrders();
+
   } catch (e) {
-    alert(e.message);
+
+    console.error(
+      "CANCEL ERROR:",
+      e
+    );
+
+    showMessage(
+      e.message ||
+      "Failed to cancel order.",
+      "error"
+    );
   }
 }
 
+// ======================
+// DISPUTE
+// ======================
 async function openDisputeUI(id) {
-  const reason = prompt("Enter dispute reason:");
+
+  const reason =
+    prompt("Enter dispute reason:");
+
   if (!reason) return;
 
   try {
-    await openDispute(id, { reason });
+
+    await openDispute(
+      id,
+      { reason }
+    );
+
+    showMessage(
+      "Dispute opened.",
+      "success"
+    );
+
     await loadOrders();
+
   } catch (e) {
-    alert(e.message);
+
+    console.error(
+      "DISPUTE ERROR:",
+      e
+    );
+
+    showMessage(
+      e.message ||
+      "Failed to open dispute.",
+      "error"
+    );
   }
 }
 
@@ -221,110 +544,258 @@ async function openDisputeUI(id) {
 // STATS
 // ======================
 function renderStats() {
+
   let active = 0;
   let completed = 0;
   let disputed = 0;
 
-  orders.forEach(o => {
-    if (o.status === "COMPLETED") completed++;
-    else if (o.status === "DISPUTED" || o.status === "DISPUTE_OPEN") disputed++;
-    else active++;
+  orders.forEach(order => {
+
+    if (
+      order.status === "COMPLETED"
+    ) {
+      completed++;
+    }
+
+    else if (
+      order.status === "DISPUTE_OPEN"
+    ) {
+      disputed++;
+    }
+
+    else {
+      active++;
+    }
   });
 
-  setText("heroActive", active);
-  setText("heroCompleted", completed);
-  setText("heroDisputed", disputed);
+  setText(
+    "heroActive",
+    active
+  );
 
-  setText("activeOrders", active);
-  setText("completedOrders", completed);
-  setText("disputedOrders", disputed);
+  setText(
+    "heroCompleted",
+    completed
+  );
+
+  setText(
+    "heroDisputed",
+    disputed
+  );
+
+  setText(
+    "activeOrders",
+    active
+  );
+
+  setText(
+    "completedOrders",
+    completed
+  );
+
+  setText(
+    "disputedOrders",
+    disputed
+  );
 }
 
 // ======================
-// TOP UP MONEY
-// requires window.topUpWallet(amount) in api.js
-// ======================
-// ======================
-// TOP UP MONEY
-// uses backend /wallets/add-money through window.addMoney(user.id, amount)
+// TOP UP
 // ======================
 async function topUpMoney() {
-  const amountInput = document.getElementById("topUpAmount");
 
-  if (!amountInput) {
-    console.error("Top up amount input not found");
-    return;
-  }
+  const amountInput =
+    document.getElementById(
+      "topUpAmount"
+    );
 
-  const amount = Number(amountInput.value);
+  if (!amountInput) return;
+
+  const amount =
+    Number(amountInput.value);
 
   if (!amount || amount <= 0) {
-    showWalletMessage("Please enter a valid amount.", "error");
+
+    showWalletMessage(
+      "Please enter a valid amount.",
+      "error"
+    );
+
     return;
   }
 
-  if (!user || !user.id) {
-    showWalletMessage("Profile not loaded yet. Refresh and try again.", "error");
-    return;
-  }
+  if (
+    !user ||
+    !user.id
+  ) {
 
-  if (typeof window.addMoney !== "function") {
-    showWalletMessage("addMoney() is missing in api.js.", "error");
+    showWalletMessage(
+      "Profile not loaded yet.",
+      "error"
+    );
+
     return;
   }
 
   try {
-    showWalletMessage("Adding money...");
 
-    await window.addMoney(user.id, amount);
+    showWalletMessage(
+      "Adding money..."
+    );
 
-   showWalletMessage(`Successfully added ${amount} DZD to wallet!`, "success");
-amountInput.value = "";
+    await window.addMoney(
+      user.id,
+      amount
+    );
 
-await loadWallet();
+    showWalletMessage(
+      `Successfully added ${amount} DZD`,
+      "success"
+    );
+
+    amountInput.value = "";
+
+    await loadWallet();
+
   } catch (e) {
-    console.error("TOP UP ERROR:", e);
-    showWalletMessage(e.message || "Failed to add money.", "error");
+
+    console.error(
+      "TOP UP ERROR:",
+      e
+    );
+
+    showWalletMessage(
+      e.message ||
+      "Failed to add money.",
+      "error"
+    );
   }
 }
+
 // ======================
 // LOGOUT
 // ======================
 function logout() {
+
   localStorage.removeItem("token");
-  window.location.href = "login.html";
+
+  window.location.href =
+    "login.html";
 }
 
 // ======================
 // INIT
 // ======================
-document.addEventListener("DOMContentLoaded", async () => {
-  if (!getToken()) {
-    window.location.href = "login.html";
-    return;
+document.addEventListener(
+  "DOMContentLoaded",
+  async () => {
+
+    if (!getToken()) {
+
+      window.location.href =
+        "login.html";
+
+      return;
+    }
+
+    // LOGOUT
+    document
+      .getElementById("logoutBtn")
+      ?.addEventListener(
+        "click",
+        logout
+      );
+
+    // TOP UP
+    document
+      .getElementById("topUpBtn")
+      ?.addEventListener(
+        "click",
+        topUpMoney
+      );
+
+    // SEARCH
+    document
+      .getElementById("searchOrdersInput")
+      ?.addEventListener(
+        "input",
+        renderOrders
+      );
+
+    // FILTER
+    document
+      .getElementById("statusOrdersFilter")
+      ?.addEventListener(
+        "change",
+        renderOrders
+      );
+
+    // RESET FILTERS
+    document
+      .getElementById("resetOrdersBtn")
+      ?.addEventListener(
+        "click",
+        () => {
+
+          const search =
+            document.getElementById(
+              "searchOrdersInput"
+            );
+
+          const status =
+            document.getElementById(
+              "statusOrdersFilter"
+            );
+
+          if (search) {
+            search.value = "";
+          }
+
+          if (status) {
+            status.value = "all";
+          }
+
+          renderOrders();
+        }
+      );
+
+    // REFRESH
+    document
+      .getElementById("refreshOrdersBtn")
+      ?.addEventListener(
+        "click",
+        loadOrders
+      );
+
+    // LOAD ORDER BUTTON
+    document
+      .getElementById("findOrderBtn")
+      ?.addEventListener(
+        "click",
+        loadOrderAction
+      );
+
+    // CONFIRM BUTTON
+    document
+      .getElementById("confirmPaymentBtn")
+      ?.addEventListener(
+        "click",
+        () => confirmOrderUI()
+      );
+
+    // CANCEL BUTTON
+    document
+      .getElementById("cancelOrderBtn")
+      ?.addEventListener(
+        "click",
+        () => cancelOrderUI()
+      );
+
+    // INITIAL LOAD
+    await loadProfile();
+
+    await loadWallet();
+
+    await loadOrders();
   }
-
-  const logoutBtn = document.getElementById("logoutBtn");
-  if (logoutBtn) logoutBtn.onclick = logout;
-
-  const topUpBtn = document.getElementById("topUpBtn");
-  if (topUpBtn) topUpBtn.onclick = topUpMoney;
-
-  document.getElementById("searchOrdersInput")?.addEventListener("input", renderOrders);
-
-  document.getElementById("statusOrdersFilter")?.addEventListener("change", renderOrders);
-
-  document.getElementById("resetOrdersBtn")?.addEventListener("click", () => {
-    document.getElementById("searchOrdersInput").value = "";
-    document.getElementById("statusOrdersFilter").value = "all";
-    renderOrders();
-    const loadOrderBtn = document.getElementById("loadOrderBtn");
-if (loadOrderBtn) loadOrderBtn.onclick = loadOrderAction;
-  });
-
-  document.getElementById("refreshOrdersBtn")?.addEventListener("click", loadOrders);
-
-  await loadProfile();
-  await loadWallet();
-  await loadOrders();
-});
+);
