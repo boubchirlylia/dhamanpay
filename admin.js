@@ -1,530 +1,422 @@
-(function () {
-  const BASE_URL = "https://dhamanpay.onrender.com/api";
-  const LOGIN_PAGE = "login.html";
+// ===============================
+// DHAMANPAY ADMIN DASHBOARD JS
+// FINAL FIXED VERSION
+// ===============================
 
-  const state = {
-    me: null,
-    orders: [],
-    disputes: [],
-    transactions: [],
-    selectedOrder: null
-  };
 
-  const $ = (id) => document.getElementById(id);
+// ===============================
+// STATE
+// ===============================
+let orders = [];
+let disputes = [];
+let users = [];
+let transactions = [];
+let adminProfile = null;
 
-  function getToken() {
-    return localStorage.getItem("token");
+
+// ===============================
+// HELPERS
+// ===============================
+function $(id) {
+  return document.getElementById(id);
+}
+
+function setText(id, value) {
+  const el = $(id);
+  if (el) el.textContent = value ?? "—";
+}
+
+function showMessage(text, type = "success") {
+  const msg = $("globalMessage");
+
+  if (!msg) return;
+
+  msg.textContent = text;
+  msg.className = `message ${type}`;
+
+  msg.classList.remove("hidden");
+
+  setTimeout(() => {
+    msg.classList.add("hidden");
+  }, 4000);
+}
+
+function formatMoney(amount) {
+  return `${Number(amount || 0).toFixed(2)} DZD`;
+}
+
+
+// ===============================
+// VIEW NAVIGATION
+// ===============================
+function buildNav() {
+
+  const nav = $("topViewNav");
+
+  const views = [
+    ["home-view", "Home"],
+    ["overview-view", "Overview"],
+    ["releases-view", "Release"],
+    ["disputes-view", "Disputes"],
+    ["orders-view", "Orders"],
+    ["users-view", "Wallet"],
+    ["transactions-view", "Transactions"],
+    ["rules-view", "Rules"],
+    ["proofs-view", "Proofs"],
+    ["profile-view", "Profile"]
+  ];
+
+  if (nav) {
+    nav.innerHTML = views.map(([id, label]) => `
+      <button class="nav-btn" type="button" data-view-link="${id}">
+        ${label}
+      </button>
+    `).join("");
   }
 
-  function setText(id, value) {
-    const el = $(id);
-    if (el) el.textContent = value ?? "—";
-  }
+  document.querySelectorAll("[data-view-link]").forEach(btn => {
 
-  function value(id) {
-    return ($(id)?.value || "").trim();
-  }
-
-  function money(v) {
-    const n = Number(v || 0);
-    return `${n.toLocaleString()} DZD`;
-  }
-
-  function safe(v) {
-    return String(v ?? "—")
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;");
-  }
-
-  function showMessage(msg, ok = true) {
-    const box = $("adminMessage");
-    if (!box) return alert(msg);
-
-    box.classList.remove("hidden", "success", "error");
-    box.classList.add(ok ? "success" : "error");
-    box.textContent = msg;
-
-    setTimeout(() => box.classList.add("hidden"), 3500);
-  }
-
-  async function api(endpoint, method = "GET", body = null) {
-    const token = getToken();
-
-    if (!token) {
-      window.location.href = LOGIN_PAGE;
-      throw new Error("No token found. Please login.");
-    }
-
-    const res = await fetch(`${BASE_URL}${endpoint}`, {
-      method,
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
-      },
-      body: body ? JSON.stringify(body) : null
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      goToView(btn.dataset.viewLink);
     });
 
-    let data = {};
-    try {
-      data = await res.json();
-    } catch {
-      throw new Error("Backend returned invalid JSON.");
-    }
+  });
+}
 
-    if (res.status === 401) {
-      localStorage.removeItem("token");
-      window.location.href = LOGIN_PAGE;
-      throw new Error("Session expired.");
-    }
+function goToView(id) {
 
-    if (!res.ok || data.success === false) {
-      throw new Error(data.message || `Request failed: ${res.status}`);
-    }
+  const view = document.getElementById(id);
 
-    return data;
+  if (!view) {
+    console.error("View not found:", id);
+    return;
   }
 
-  function normalizeOrder(o) {
-    return {
-      ...o,
-      id: o.id,
-      status: String(o.status || "UNKNOWN").toUpperCase(),
-      amount: o.amount ?? o.total_amount ?? 0,
-      product: o.product_name || o.product || "Order",
-      customerId: o.customer_id || o.customer?.id,
-      merchantId: o.merchant_id || o.merchant?.id,
-      address: o.delivery_address || o.address || "—"
-    };
-  }
+  document.querySelectorAll(".view").forEach(v => {
+    v.classList.remove("active");
+  });
 
-  function statusClass(status) {
-    return String(status || "").toLowerCase();
-  }
+  view.classList.add("active");
 
-  function computeStats() {
-    return {
-      total: state.orders.length,
-      pendingRelease: state.orders.filter(o =>
-        ["DELIVERED_PENDING", "DISPUTE_OPEN"].includes(o.status)
-      ).length,
-      openDisputes: state.orders.filter(o => o.status === "DISPUTE_OPEN").length || state.disputes.length,
-      completed: state.orders.filter(o => o.status === "COMPLETED").length,
-      created: state.orders.filter(o => o.status === "CREATED").length,
-      frozen: state.orders.filter(o => o.status === "ESCROW_FROZEN").length,
-      deliveredPending: state.orders.filter(o => o.status === "DELIVERED_PENDING").length,
-      tx: state.transactions.length
-    };
-  }
+  document.querySelectorAll("[data-view-link]").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.viewLink === id);
+  });
 
-  function renderStats() {
-    const s = computeStats();
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+}
 
-    setText("heroOrders", s.total);
-    setText("heroOpenDisputes", s.openDisputes);
-    setText("heroPendingReleases", s.pendingRelease);
-    setText("heroCompleted", s.completed);
 
-    setText("statTotalOrders", s.total);
-    setText("statPendingRelease", s.pendingRelease);
-    setText("statOpenDisputes", s.openDisputes);
-    setText("statTransactions", s.tx);
+// ===============================
+// LOAD ADMIN PROFILE
+// ===============================
+async function loadAdminProfile() {
 
-    setText("overviewCreated", s.created);
-    setText("overviewFrozen", s.frozen);
-    setText("overviewDeliveredPending", s.deliveredPending);
-    setText("overviewCompleted", s.completed);
+  try {
 
-    setText("disputeOpenCount", s.openDisputes);
-    setText("disputeTotalCount", state.disputes.length);
-    setText("disputeWrongItemCount", state.disputes.filter(d =>
-      String(d.reason || "").toLowerCase().includes("wrong")
-    ).length);
-    setText("disputeNeedsAdminCount", s.openDisputes);
-  }
+    const res = await getMe();
 
-  async function loadProfile() {
-    const res = await api("/me");
-    const admin = res.data || {};
-    state.me = admin;
+    adminProfile = res.data;
 
-    setText("adminName", admin.full_name || "Admin");
-    setText("heroAdminName", admin.full_name || "Admin");
-    setText("heroAdminRole", String(admin.role || "admin").toUpperCase());
+    console.log("ADMIN:", adminProfile);
 
-    setText("adminProfileName", admin.full_name || "Admin");
-    setText("adminProfileRole", String(admin.role || "admin").toUpperCase());
-    setText("adminProfileEmail", admin.email);
-    setText("adminProfilePhone", admin.phone);
-    setText("adminProfileId", admin.id);
+    setText("adminName", adminProfile.full_name);
+    setText("adminEmail", adminProfile.email);
+    setText("adminPhone", adminProfile.phone);
+    setText("adminRole", adminProfile.role);
 
-    setText("adminCardName", admin.full_name || "Admin");
-    setText("adminCardRole", String(admin.role || "admin").toUpperCase());
-  }
+  } catch (e) {
 
-  async function loadOrders() {
-    const res = await api("/orders");
-    state.orders = Array.isArray(res.data) ? res.data.map(normalizeOrder) : [];
+    console.error("PROFILE ERROR:", e);
 
-    renderOrders();
-    renderQueue();
-    renderStats();
-  }
-
-  async function loadDisputes() {
-    try {
-      const res = await api("/disputes");
-      state.disputes = Array.isArray(res.data) ? res.data : [];
-    } catch {
-      state.disputes = [];
-    }
-
-    renderDisputes();
-    renderStats();
-  }
-
-  async function loadTransactions() {
-    try {
-      const res = await api("/transactions");
-      state.transactions = Array.isArray(res.data) ? res.data : [];
-    } catch {
-      state.transactions = [];
-    }
-
-    renderTransactions();
-    renderStats();
-  }
-
-  function renderOrders() {
-    const box = $("ordersList");
-    if (!box) return;
-
-    const q = value("ordersSearch").toLowerCase();
-    const filter = value("ordersStatusFilter").toUpperCase();
-
-    const list = state.orders.filter(o => {
-      const matchSearch =
-        !q ||
-        String(o.id).includes(q) ||
-        String(o.product).toLowerCase().includes(q) ||
-        String(o.customerId).includes(q) ||
-        String(o.merchantId).includes(q);
-
-      const matchStatus = !filter || o.status === filter;
-
-      return matchSearch && matchStatus;
-    });
-
-    if (!list.length) {
-      box.innerHTML = `<div class="empty-state">No orders found.</div>`;
-      return;
-    }
-
-    box.innerHTML = list.map(o => `
-      <div class="list-card">
-        <div class="list-head">
-          <div>
-            <p class="list-title">Order #${safe(o.id)} · ${safe(o.product)}</p>
-            <div class="meta">
-              <span>Amount: ${safe(money(o.amount))}</span>
-              <span>Customer: ${safe(o.customerId)}</span>
-              <span>Merchant: ${safe(o.merchantId)}</span>
-            </div>
-            <p class="dp-muted">${safe(o.address)}</p>
-          </div>
-          <span class="badge-status ${statusClass(o.status)}">${safe(o.status)}</span>
-        </div>
-        <button class="dp-gold-btn small-pill" data-load-order="${safe(o.id)}">Load for release</button>
-      </div>
-    `).join("");
-  }
-
-  function renderQueue() {
-    const box = $("adminQueueList");
-    if (!box) return;
-
-    const list = state.orders.filter(o =>
-      ["DELIVERED_PENDING", "DISPUTE_OPEN"].includes(o.status)
-    );
-
-    if (!list.length) {
-      box.innerHTML = `<div class="empty-state">No money release queue yet.</div>`;
-      return;
-    }
-
-    box.innerHTML = list.map(o => `
-      <div class="list-card">
-        <div class="list-head">
-          <div>
-            <p class="list-title">Order #${safe(o.id)} ready for admin decision</p>
-            <div class="meta">
-              <span>${safe(o.status)}</span>
-              <span>${safe(money(o.amount))}</span>
-            </div>
-          </div>
-          <button class="dp-gold-btn small-pill" data-load-order="${safe(o.id)}">Open</button>
-        </div>
-      </div>
-    `).join("");
-  }
-
-  function renderDisputes() {
-    const box = $("disputesList");
-    if (!box) return;
-
-    const list = state.disputes;
-
-    if (!list.length) {
-      box.innerHTML = `<div class="empty-state">No disputes loaded.</div>`;
-      return;
-    }
-
-    box.innerHTML = list.map(d => `
-      <div class="list-card">
-        <p class="list-title">Dispute #${safe(d.id)} · Order #${safe(d.order_id)}</p>
-        <p class="dp-muted">${safe(d.reason || d.description || "No reason")}</p>
-        <div class="meta">
-          <span>Status: ${safe(d.status || "OPEN")}</span>
-        </div>
-        ${d.order_id ? `<button class="dp-gold-btn small-pill" data-load-order="${safe(d.order_id)}">Load order</button>` : ""}
-      </div>
-    `).join("");
-  }
-
-  function renderTransactions() {
-    const box = $("transactionsList");
-    if (!box) return;
-
-    if (!state.transactions.length) {
-      box.innerHTML = `<div class="empty-state">No transactions loaded.</div>`;
-      return;
-    }
-
-    box.innerHTML = state.transactions.map(tx => `
-      <div class="list-card">
-        <p class="list-title">${safe(tx.type || tx.tx_type || "Transaction")} · ${safe(money(tx.amount))}</p>
-        <div class="meta">
-          <span>User: ${safe(tx.user_id || tx.wallet_user_id)}</span>
-          <span>Order: ${safe(tx.order_id)}</span>
-          <span>${safe(tx.created_at || "")}</span>
-        </div>
-      </div>
-    `).join("");
-  }
-
-  async function loadSingleOrder(id = null) {
-    const orderId = id || value("actionOrderId");
-
-    if (!orderId) {
-      showMessage("Enter order ID first.", false);
-      return;
-    }
-
-    try {
-      const res = await api(`/orders/${encodeURIComponent(orderId)}`);
-      const order = normalizeOrder(res.data || {});
-      state.selectedOrder = order;
-
-      if ($("actionOrderId")) $("actionOrderId").value = order.id || orderId;
-
-      setText("selectedOrderStatus", order.status);
-      setText("selectedOrderAmount", money(order.amount));
-      setText("selectedOrderCustomer", order.customerId);
-      setText("selectedOrderMerchant", order.merchantId);
-
-      updateButtons(order);
-      showMessage("Order loaded ✔");
-      goToView("releases-view");
-    } catch (e) {
-      console.error(e);
-      state.selectedOrder = null;
-      updateButtons(null);
-      showMessage(e.message || "Order loading failed.", false);
-    }
-  }
-
- function updateButtons(order) {
-  const releaseBtn = $("releaseBtn");
-  const refundBtn = $("refundBtn");
-
-  const canRelease = order && [
-    "ESCROW_FROZEN",
-    "DELIVERED_PENDING",
-    "DISPUTE_OPEN"
-  ].includes(order.status);
-
-  const canRefund = order && [
-    "ESCROW_FROZEN",
-    "DISPUTE_OPEN"
-  ].includes(order.status);
-
-  if (releaseBtn) {
-    releaseBtn.disabled = !canRelease;
-  }
-
-  if (refundBtn) {
-    refundBtn.disabled = !canRefund;
   }
 }
 
-  async function settle(action) {
-    const order = state.selectedOrder;
 
-    if (!order?.id) {
-      showMessage("Load an order first.", false);
-      return;
-    }
+// ===============================
+// LOAD ORDERS
+// ===============================
+async function loadOrders() {
 
-    const note = value("adminNote");
+  try {
 
-    if (!note) {
-      showMessage("Admin note is required.", false);
-      return;
-    }
+    const res = await getOrders();
 
-    try {
-      await api(`/orders/${encodeURIComponent(order.id)}/${action}`, "POST", {
-        admin_note: note
-      });
+    orders = res.data || [];
 
-      showMessage(action === "release" ? "Money released ✔" : "Order refunded ✔");
+    console.log("ORDERS:", orders);
 
-      await loadSingleOrder(order.id);
-      await loadOrders();
-      await loadDisputes();
-      await loadTransactions();
-    } catch (e) {
-      console.error(e);
-      showMessage(e.message || `${action} failed.`, false);
-    }
-  }
-
-  async function loadWallet() {
-    const userId = value("walletUserIdInput");
-
-    if (!userId) {
-      showMessage("Enter user ID.", false);
-      return;
-    }
-
-    try {
-      const res = await api(`/wallets/${encodeURIComponent(userId)}`);
-      const w = res.data || {};
-
-      setText("walletAvailable", money(w.available_balance));
-      setText("walletFrozen", money(w.frozen_balance));
-
-      showMessage("Wallet loaded ✔");
-    } catch (e) {
-      console.error(e);
-      showMessage(e.message || "Wallet loading failed.", false);
-    }
-  }
-
-  async function addMoneyUI() {
-    const userId = value("addMoneyUserId");
-    const amount = Number(value("addMoneyAmount"));
-
-    if (!userId || !amount || amount <= 0) {
-      showMessage("Enter valid user ID and amount.", false);
-      return;
-    }
-
-    try {
-      await api("/wallets/add-money", "POST", {
-        user_id: Number(userId),
-        amount
-      });
-
-      showMessage("Money added ✔");
-      await loadTransactions();
-
-      if (value("walletUserIdInput") === userId) {
-        await loadWallet();
-      }
-    } catch (e) {
-      console.error(e);
-      showMessage(e.message || "Add money failed.", false);
-    }
-  }
-
-  function buildNav() {
-    document.querySelectorAll("[data-view-link]").forEach(btn => {
-      btn.addEventListener("click", () => goToView(btn.dataset.viewLink));
-    });
-  }
-
-  function goToView(id) {
-    document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
-    $(id)?.classList.add("active");
-
-    document.querySelectorAll("[data-view-link]").forEach(btn => {
-      btn.classList.toggle("active", btn.dataset.viewLink === id);
-    });
-  }
-
-  function hideLoader() {
-    const loader = $("loader");
-    if (loader) loader.classList.add("hide");
-  }
-
-  async function loadAll() {
-    await loadProfile();
-    await Promise.allSettled([
-      loadOrders(),
-      loadDisputes(),
-      loadTransactions()
-    ]);
+    renderOrders();
     renderStats();
+
+  } catch (e) {
+
+    console.error("ORDERS ERROR:", e);
+
+  }
+}
+
+
+// ===============================
+// RENDER ORDERS
+// ===============================
+function renderOrders() {
+
+  const container = $("ordersList");
+
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  if (!orders.length) {
+
+    container.innerHTML = `
+      <div class="empty-state">
+        No orders found
+      </div>
+    `;
+
+    return;
   }
 
-  function bindEvents() {
-    buildNav();
+  orders.forEach(order => {
 
-    $("refreshProfileBtn")?.addEventListener("click", loadProfile);
-    $("refreshAllBtn")?.addEventListener("click", loadAll);
-    $("refreshOrdersBtn")?.addEventListener("click", loadOrders);
-    $("refreshDisputesBtn")?.addEventListener("click", loadDisputes);
-    $("refreshTransactionsBtn")?.addEventListener("click", loadTransactions);
+    const fee = Number(order.amount || 0) * 0.018;
+    const merchantNet = Number(order.amount || 0) - fee;
 
-    $("checkOrderBtn")?.addEventListener("click", () => loadSingleOrder());
-    $("releaseBtn")?.addEventListener("click", () => settle("release"));
-    $("refundBtn")?.addEventListener("click", () => settle("refund"));
+    const div = document.createElement("div");
 
-    $("loadWalletBtn")?.addEventListener("click", loadWallet);
-    $("addMoneyBtn")?.addEventListener("click", addMoneyUI);
+    div.className = "list-card";
 
-    $("ordersSearch")?.addEventListener("input", renderOrders);
-    $("ordersStatusFilter")?.addEventListener("change", renderOrders);
+    div.innerHTML = `
+      <div class="list-head">
 
-    $("logoutBtn")?.addEventListener("click", () => {
-      localStorage.removeItem("token");
-      window.location.href = LOGIN_PAGE;
-    });
+        <div>
+          <div class="list-title">
+            Order #${order.id}
+          </div>
 
-    document.addEventListener("click", (e) => {
-      const btn = e.target.closest("[data-load-order]");
-      if (btn) loadSingleOrder(btn.dataset.loadOrder);
-    });
-  }
+          <div class="meta">
+            <span>${order.product_name}</span>
+            <span>${order.status}</span>
+          </div>
+        </div>
 
-  document.addEventListener("DOMContentLoaded", async () => {
-    try {
-      bindEvents();
-      goToView("home-view");
+      </div>
 
-      if (!getToken()) {
-        window.location.href = LOGIN_PAGE;
-        return;
-      }
+      <div class="meta">
+        <span>Total: ${formatMoney(order.amount)}</span>
+        <span>Fee: ${formatMoney(fee)}</span>
+        <span>Merchant Receives: ${formatMoney(merchantNet)}</span>
+      </div>
 
-      await loadAll();
-    } catch (e) {
-      console.error(e);
-      showMessage(e.message || "Admin page failed.", false);
-    } finally {
-      hideLoader();
-    }
+      <div class="actions-row">
+
+        ${
+          order.status === "DELIVERED"
+            ? `
+              <button
+                class="dp-gold-btn"
+                onclick="releaseOrder(${order.id})"
+              >
+                Release
+              </button>
+            `
+            : ""
+        }
+
+      </div>
+    `;
+
+    container.appendChild(div);
+
   });
-})();
+}
+
+
+// ===============================
+// RELEASE ORDER
+// ===============================
+async function releaseOrder(orderId) {
+
+  try {
+
+    const order = orders.find(o => o.id === orderId);
+
+    if (!order) {
+      return showMessage("Order not found", "error");
+    }
+
+    const amount = Number(order.amount || 0);
+
+    const fee = amount * 0.018;
+
+    const merchantNet = amount - fee;
+
+    const confirmed = confirm(
+      `Release Payment?\n\n` +
+      `Order Amount: ${formatMoney(amount)}\n` +
+      `DhamanPay Fee (1.8%): ${formatMoney(fee)}\n` +
+      `Merchant Receives: ${formatMoney(merchantNet)}`
+    );
+
+    if (!confirmed) return;
+
+    showMessage("Releasing payment...", "info");
+
+    // BACKEND RELEASE
+    await releaseFunds(orderId);
+
+    showMessage(
+      `Released Successfully\n` +
+      `Fee Collected: ${formatMoney(fee)}`,
+      "success"
+    );
+
+    await loadOrders();
+
+  } catch (e) {
+
+    console.error("RELEASE ERROR:", e);
+
+    showMessage(
+      e.message || "Failed to release payment",
+      "error"
+    );
+
+  }
+}
+
+
+// ===============================
+// STATS
+// ===============================
+function renderStats() {
+
+  let total = orders.length;
+
+  let completed = 0;
+  let disputesCount = 0;
+  let releasedMoney = 0;
+  let adminFees = 0;
+
+  orders.forEach(order => {
+
+    if (order.status === "COMPLETED") {
+      completed++;
+    }
+
+    if (order.status === "DISPUTED") {
+      disputesCount++;
+    }
+
+    releasedMoney += Number(order.amount || 0);
+
+    adminFees += Number(order.amount || 0) * 0.018;
+
+  });
+
+  setText("totalOrders", total);
+  setText("completedOrders", completed);
+  setText("disputesCount", disputesCount);
+
+  setText(
+    "releasedMoney",
+    formatMoney(releasedMoney)
+  );
+
+  setText(
+    "adminWallet",
+    formatMoney(adminFees)
+  );
+}
+
+
+// ===============================
+// LOAD USERS
+// ===============================
+async function loadUsers() {
+
+  try {
+
+    const res = await getUsers();
+
+    users = res.data || [];
+
+    console.log("USERS:", users);
+
+  } catch (e) {
+
+    console.error("USERS ERROR:", e);
+
+  }
+}
+
+
+// ===============================
+// LOAD TRANSACTIONS
+// ===============================
+async function loadTransactions() {
+
+  try {
+
+    const res = await getTransactions();
+
+    transactions = res.data || [];
+
+    console.log("TRANSACTIONS:", transactions);
+
+  } catch (e) {
+
+    console.error("TRANSACTIONS ERROR:", e);
+
+  }
+}
+
+
+// ===============================
+// LOGOUT
+// ===============================
+function logout() {
+
+  localStorage.removeItem("token");
+
+  window.location.href = "login.html";
+
+}
+
+
+// ===============================
+// INIT
+// ===============================
+document.addEventListener("DOMContentLoaded", async () => {
+
+  if (!getToken()) {
+
+    window.location.href = "login.html";
+
+    return;
+  }
+
+  buildNav();
+
+  goToView("home-view");
+
+  const logoutBtn = $("logoutBtn");
+
+  if (logoutBtn) {
+    logoutBtn.onclick = logout;
+  }
+
+  await loadAdminProfile();
+
+  await loadOrders();
+
+  await loadUsers();
+
+  await loadTransactions();
+
+});
