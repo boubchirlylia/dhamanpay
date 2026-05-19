@@ -461,8 +461,6 @@
 
     try {
 
-      console.log("Shipping order:", id);
-
       await apiFetch(
         `/orders/${id}/ship`,
         "POST",
@@ -674,12 +672,9 @@
 
       const formData = new FormData();
 
-      formData.append("proof", selectedPdf);
-      formData.append("proof_file", selectedPdf);
-
       formData.append(
-        "proof_url",
-        selectedPdf.name
+        "proof_pdf",
+        selectedPdf
       );
 
       formData.append(
@@ -738,68 +733,10 @@
 
       showMessage(
         "proofMessage",
-        "PDF accepted locally but backend proof upload must support PDF files.",
-        "info"
-      );
-
-      setText(
-        "proofPrevOrder",
-        "#" + orderId
-      );
-
-      setText(
-        "proofPrevKind",
-        kind || "Delivery Proof"
-      );
-
-      setText(
-        "proofPrevFile",
-        selectedPdf.name
-      );
-
-      setText(
-        "proofPrevDesc",
-        desc || "—"
-      );
-
-      setText(
-        "proofPreviewBadge",
-        "PDF Selected Locally"
+        err.message,
+        "error"
       );
     }
-  }
-
-  function setupNavigation() {
-
-    const navButtons =
-      document.querySelectorAll(".view-nav-btn");
-
-    const views =
-      document.querySelectorAll(".view-panel");
-
-    navButtons.forEach(btn => {
-
-      btn.addEventListener("click", () => {
-
-        const targetId =
-          btn.dataset.view;
-
-        navButtons.forEach(b => {
-          b.classList.remove("active-nav");
-        });
-
-        views.forEach(view => {
-          view.classList.remove("active");
-        });
-
-        btn.classList.add("active-nav");
-
-        document
-          .getElementById(targetId)
-          ?.classList.add("active");
-      });
-
-    });
   }
 
   function setupEvents() {
@@ -908,7 +845,6 @@
       return;
     }
 
-    setupNavigation();
     setupEvents();
 
     try {
