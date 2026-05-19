@@ -1191,22 +1191,62 @@
         };
       }
 
-      function renderStats() {
-        const s = computeStats();
-        setText('heroOrders', s.total);
-        setText('heroOpenDisputes', s.openDisputes);
-        setText('heroPendingReleases', s.pendingRelease);
-        setText('heroCompleted', s.completed);
-        setText('statTotalOrders', s.total);
-        setText('statPendingRelease', s.pendingRelease);
-        setText('statOpenDisputes', s.openDisputes);
-        setText('statTransactions', s.tx);
-        setText('overviewCreated', s.created);
-        setText('overviewFrozen', s.frozen);
-        setText('overviewDeliveredPending', s.deliveredPending);
-        setText('overviewCompleted', s.completed);
-      }
+     function renderStats() {
+  const s = computeStats();
 
+  setText('heroOrders', s.total);
+  setText('heroOpenDisputes', s.openDisputes);
+  setText('heroPendingReleases', s.pendingRelease);
+  setText('heroCompleted', s.completed);
+
+  setText('statTotalOrders', s.total);
+  setText('statPendingRelease', s.pendingRelease);
+  setText('statOpenDisputes', s.openDisputes);
+  setText('statTransactions', s.tx);
+
+  setText('overviewCreated', s.created);
+  setText('overviewFrozen', s.frozen);
+  setText('overviewDeliveredPending', s.deliveredPending);
+  setText('overviewCompleted', s.completed);
+
+  let wallet = 0;
+
+  state.transactions.forEach(tx => {
+    const type = String(tx.tx_type || tx.type || '').toLowerCase();
+    const amount = Number(tx.amount || 0);
+
+    if (
+      type.includes('fee') ||
+      type.includes('admin') ||
+      type.includes('commission') ||
+      type.includes('release')
+    ) {
+      wallet += amount;
+    }
+  });
+
+  if (wallet === 0) {
+    state.orders.forEach(order => {
+      const status = String(order.status || '').toUpperCase();
+      const amount = Number(
+        order.amount ||
+        order.total_amount ||
+        order.gross_amount ||
+        order.raw?.amount ||
+        order.raw?.total_amount ||
+        order.raw?.gross_amount ||
+        0
+      );
+
+      if (status === 'COMPLETED' || status === 'RELEASED') {
+        wallet += amount * 0.018;
+      }
+    });
+  }
+
+  setText('dhamanpayWallet', formatMoney(wallet));
+  setText('heroDhamanpayWallet', formatMoney(wallet));
+}
       async function loadMeData() {
         try {
           const res = await apiFetch('/me');
