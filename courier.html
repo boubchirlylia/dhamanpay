@@ -16,26 +16,19 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --gold-1: #f9d56c;
-      --gold-2: #f4b83f;
-      --purple-bg: #070022;
-      --purple-mid: #160044;
-      --purple-deep: #09002b;
-      --white-dim: rgba(255,255,255,0.72);
-      --glass: rgba(255,255,255,0.055);
-      --line: rgba(177,116,255,0.22);
-      --gold-line: rgba(244,184,63,0.36);
-      --danger: #ff6b6b;
-      --success: #44d17f;
+      --gold-1:#f9d56c; --gold-2:#f4b83f;
+      --purple-bg:#070022; --purple-mid:#160044; --purple-deep:#09002b;
+      --white-dim:rgba(255,255,255,0.72);
+      --glass:rgba(255,255,255,0.055);
+      --line:rgba(177,116,255,0.22);
+      --gold-line:rgba(244,184,63,0.36);
+      --danger:#ff6b6b; --success:#44d17f;
     }
 
     html, body {
-      width: 100%;
-      min-height: 100%;
-      font-family: "Manrope", sans-serif;
-      background: var(--purple-bg);
-      color: #fff;
-      overflow-x: hidden;
+      width:100%; min-height:100%;
+      font-family:"Manrope", sans-serif;
+      background:var(--purple-bg); color:#fff; overflow-x:hidden;
     }
 
     body {
@@ -44,548 +37,226 @@
         radial-gradient(ellipse 55% 50% at 76% 44%, rgba(119,47,211,0.42), transparent 55%),
         radial-gradient(ellipse 45% 35% at 92% 12%, rgba(244,184,63,0.08), transparent 55%),
         linear-gradient(135deg, var(--purple-bg), var(--purple-mid), var(--purple-deep));
-      background-attachment: fixed;
+      background-attachment:fixed;
     }
 
     body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      background-image: radial-gradient(rgba(159,92,255,0.22) 1.1px, transparent 1.1px);
-      background-size: 22px 22px;
-      opacity: 0.30;
-      pointer-events: none;
-      z-index: 0;
+      content:""; position:fixed; inset:0;
+      background-image:radial-gradient(rgba(159,92,255,0.22) 1.1px, transparent 1.1px);
+      background-size:22px 22px; opacity:.30; pointer-events:none; z-index:0;
     }
 
-    a { color: inherit; text-decoration: none; }
-    button, input, textarea, select { font: inherit; }
-    button { cursor: pointer; }
+    a { color:inherit; text-decoration:none; }
+    button, input, textarea, select { font:inherit; }
+    button { cursor:pointer; }
 
     .loader {
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-      background: #070022;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      transition: transform 0.8s ease, opacity 0.5s ease, visibility 0.5s ease;
+      position:fixed; inset:0; z-index:9999; background:#070022;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      transition:transform .8s ease, opacity .5s ease, visibility .5s ease;
     }
-
-    .loader.hide {
-      transform: translateY(-100%);
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-    }
-
-    .loader-logo {
-      width: 132px;
-      max-height: 120px;
-      object-fit: contain;
-      margin-bottom: 18px;
-    }
-
-    .loader-title {
-      font-size: 24px;
-      letter-spacing: 0.26em;
-      text-transform: uppercase;
-      font-weight: 900;
-    }
-
-    .loader-bar-bg {
-      width: 240px;
-      height: 3px;
-      background: rgba(255,255,255,0.12);
-      margin-top: 18px;
-      border-radius: 99px;
-      overflow: hidden;
-    }
-
-    .loader-bar {
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(100deg, #f9d56c, #f4b83f, #db9718);
-      animation: loadBar 1.2s ease forwards;
-      transform-origin: left;
-    }
-
-    @keyframes loadBar {
-      from { transform: scaleX(0); }
-      to { transform: scaleX(1); }
-    }
+    .loader.hide { transform:translateY(-100%); opacity:0; visibility:hidden; pointer-events:none; }
+    .loader-logo { width:132px; max-height:120px; object-fit:contain; margin-bottom:18px; }
+    .loader-title { font-size:24px; letter-spacing:.26em; text-transform:uppercase; font-weight:900; }
+    .loader-bar-bg { width:240px; height:3px; background:rgba(255,255,255,.12); margin-top:18px; border-radius:99px; overflow:hidden; }
+    .loader-bar { width:100%; height:100%; background:linear-gradient(100deg,#f9d56c,#f4b83f,#db9718); animation:loadBar 1.2s ease forwards; transform-origin:left; }
+    @keyframes loadBar { from { transform:scaleX(0); } to { transform:scaleX(1); } }
 
     .dp-gold-text {
-      background: linear-gradient(100deg, #b97810, #f9d56c 45%, #f4b83f);
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
+      background:linear-gradient(100deg,#b97810,#f9d56c 45%,#f4b83f);
+      -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
     }
 
     .dp-glass {
-      background: var(--glass);
-      border: 1px solid var(--line);
-      backdrop-filter: blur(20px);
-      border-radius: 28px;
-      box-shadow: 0 30px 80px rgba(0,0,0,0.35);
+      background:var(--glass); border:1px solid var(--line);
+      backdrop-filter:blur(20px); border-radius:28px;
+      box-shadow:0 30px 80px rgba(0,0,0,.35);
+    }
+
+    .dp-gold-btn, .dp-ghost-btn {
+      font-weight:900; border-radius:16px; transition:.22s ease;
+      padding:0 22px; min-height:54px;
     }
 
     .dp-gold-btn {
-      background: linear-gradient(100deg, #f9d56c, #f4b83f, #db9718);
-      color: #070022;
-      font-weight: 900;
-      border: none;
-      border-radius: 16px;
-      box-shadow: 0 16px 48px rgba(244,184,63,0.28);
-      transition: 0.22s ease;
-      padding: 0 22px;
-      min-height: 54px;
-    }
-
-    .dp-gold-btn:hover:not(:disabled) {
-      transform: translateY(-3px);
-      box-shadow: 0 24px 72px rgba(244,184,63,0.40);
+      background:linear-gradient(100deg,#f9d56c,#f4b83f,#db9718);
+      color:#070022; border:none; box-shadow:0 16px 48px rgba(244,184,63,.28);
     }
 
     .dp-ghost-btn {
-      border: 1.5px solid rgba(173,110,255,0.40);
-      background: rgba(255,255,255,0.04);
-      color: #fff;
-      font-weight: 900;
-      border-radius: 16px;
-      backdrop-filter: blur(8px);
-      transition: 0.22s ease;
-      padding: 0 22px;
-      min-height: 54px;
+      border:1.5px solid rgba(173,110,255,.40);
+      background:rgba(255,255,255,.04); color:#fff;
+      backdrop-filter:blur(8px);
     }
 
-    .dp-ghost-btn:hover:not(:disabled) {
-      background: rgba(255,255,255,0.09);
-      border-color: rgba(173,110,255,0.65);
-      transform: translateY(-2px);
+    .dp-gold-btn:hover:not(:disabled), .dp-ghost-btn:hover:not(:disabled) {
+      transform:translateY(-2px);
     }
 
     .dp-header {
-      width: 100%;
-      padding: 22px 54px;
-      background: linear-gradient(180deg, rgba(7,0,34,0.82), rgba(7,0,34,0.12));
-      position: fixed;
-      top: 0;
-      left: 0;
-      z-index: 50;
-      backdrop-filter: blur(14px);
+      width:100%; padding:22px 54px;
+      background:linear-gradient(180deg,rgba(7,0,34,.82),rgba(7,0,34,.12));
+      position:fixed; top:0; left:0; z-index:50; backdrop-filter:blur(14px);
     }
 
     .dp-header-inner {
-      max-width: 1760px;
-      margin: 0 auto;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 28px;
+      max-width:1760px; margin:0 auto; display:flex;
+      justify-content:space-between; align-items:center; gap:28px;
     }
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      min-width: 210px;
-    }
+    .brand { display:flex; align-items:center; gap:14px; min-width:210px; }
+    .brand img { width:82px; height:62px; object-fit:contain; }
+    .brand-text { font-size:18px; font-weight:900; letter-spacing:.12em; text-transform:uppercase; line-height:1.1; }
 
-    .brand img {
-      width: 82px;
-      height: 62px;
-      object-fit: contain;
-    }
-
-    .brand-text {
-      font-size: 18px;
-      font-weight: 900;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      line-height: 1.1;
-    }
-
-    .top-nav {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex: 1;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
+    .top-nav { display:flex; align-items:center; gap:12px; flex:1; justify-content:center; flex-wrap:wrap; }
     .view-nav-btn {
-      border: 0;
-      background: rgba(255,255,255,0.04);
-      color: rgba(255,255,255,0.76);
-      font-size: 13px;
-      font-weight: 900;
-      padding: 10px 14px;
-      border-radius: 14px;
-      transition: 0.2s ease;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
+      border:0; background:rgba(255,255,255,.04); color:rgba(255,255,255,.76);
+      font-size:13px; font-weight:900; padding:10px 14px; border-radius:14px;
+      text-transform:uppercase; letter-spacing:.08em;
     }
+    .view-nav-btn:hover, .view-nav-btn.active-nav { color:var(--gold-2); background:rgba(244,184,63,.10); }
 
-    .view-nav-btn:hover,
-    .view-nav-btn.active-nav {
-      color: var(--gold-2);
-      background: rgba(244,184,63,0.10);
-    }
-
-    .small-pill {
-      padding: 13px 22px;
-      min-height: auto;
-      font-size: 14px;
-    }
+    .small-pill { padding:13px 22px; min-height:auto; font-size:14px; }
 
     .dashboard-shell {
-      position: relative;
-      z-index: 10;
-      min-height: 100vh;
-      padding: 138px 54px 54px;
-      max-width: 1760px;
-      margin: 0 auto;
+      position:relative; z-index:10; min-height:100vh;
+      padding:138px 54px 54px; max-width:1760px; margin:0 auto;
     }
 
-    .view-panel { display: none; }
-    .view-panel.active { display: block; animation: fadeUp .35s ease both; }
+    .view-panel { display:none; }
+    .view-panel.active { display:block; animation:fadeUp .35s ease both; }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
 
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(12px); }
-      to { opacity: 1; transform: translateY(0); }
+    .dashboard-hero, .grid-2 {
+      display:grid; grid-template-columns:1.05fr .95fr; gap:28px; align-items:start;
     }
 
-    .dashboard-hero {
-      display: grid;
-      grid-template-columns: 1fr 0.92fr;
-      gap: 32px;
-      align-items: center;
-      margin-bottom: 34px;
-    }
+    .dashboard-hero { align-items:center; margin-bottom:34px; }
 
     .dp-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 22px;
-      border-radius: 999px;
-      border: 1px solid var(--gold-line);
-      color: var(--gold-2);
-      background: rgba(244,184,63,0.07);
-      font-weight: 900;
-      font-size: 14px;
-      margin-bottom: 28px;
+      display:inline-flex; align-items:center; gap:12px; padding:12px 22px;
+      border-radius:999px; border:1px solid var(--gold-line);
+      color:var(--gold-2); background:rgba(244,184,63,.07);
+      font-weight:900; font-size:14px; margin-bottom:28px;
     }
 
-    .dp-title {
-      font-size: clamp(50px, 4.8vw, 86px);
-      line-height: 1.05;
-      letter-spacing: -0.06em;
-      font-weight: 900;
-    }
+    .dp-title { font-size:clamp(50px,4.8vw,86px); line-height:1.05; letter-spacing:-.06em; font-weight:900; }
+    .dp-subtitle { margin-top:24px; max-width:720px; font-size:clamp(17px,1.25vw,22px); line-height:1.62; color:var(--white-dim); }
 
-    .dp-subtitle {
-      margin-top: 24px;
-      max-width: 720px;
-      font-size: clamp(17px, 1.25vw, 22px);
-      line-height: 1.62;
-      color: var(--white-dim);
-    }
-
-    .hero-card {
-      padding: 34px;
-      min-height: 430px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
+    .hero-card, .grid-card { padding:30px; }
+    .hero-card { min-height:430px; display:flex; flex-direction:column; justify-content:center; }
 
     .logo-box {
-      width: 154px;
-      height: 154px;
-      border-radius: 38px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(145deg, rgba(244,184,63,0.18), rgba(255,255,255,0.04));
-      border: 1px solid rgba(244,184,63,0.35);
-      margin-bottom: 28px;
+      width:154px; height:154px; border-radius:38px;
+      display:flex; align-items:center; justify-content:center;
+      background:linear-gradient(145deg,rgba(244,184,63,.18),rgba(255,255,255,.04));
+      border:1px solid rgba(244,184,63,.35); margin-bottom:28px;
     }
+    .logo-box img { width:86%; height:86%; object-fit:contain; }
 
-    .logo-box img {
-      width: 86%;
-      height: 86%;
-      object-fit: contain;
-    }
+    .stat-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin-top:24px; }
+    .stat-card { padding:22px; border-radius:22px; background:rgba(255,255,255,.08); border:1px solid rgba(177,116,255,.18); }
+    .stat-card span { display:block; color:rgba(255,255,255,.58); text-transform:uppercase; letter-spacing:.08em; font-size:12px; font-weight:900; }
+    .stat-card strong { display:block; margin-top:10px; color:var(--gold-2); font-size:30px; font-weight:900; }
 
-    .stat-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 16px;
-      margin-top: 24px;
-    }
+    .section-head { margin-bottom:28px; }
+    .section-label { color:var(--gold-2); font-size:13px; font-weight:900; letter-spacing:.28em; text-transform:uppercase; margin-bottom:12px; }
+    .section-title { font-size:clamp(36px,3.2vw,58px); line-height:1.05; letter-spacing:-.055em; font-weight:900; }
+    .dp-muted { color:rgba(255,255,255,.60); }
 
-    .stat-card {
-      padding: 22px;
-      border-radius: 22px;
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(177,116,255,0.18);
-    }
+    .card-title { font-size:28px; font-weight:900; margin-bottom:20px; }
 
-    .stat-card span {
-      display: block;
-      color: rgba(255,255,255,0.58);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      font-size: 12px;
-      font-weight: 900;
-    }
-
-    .stat-card strong {
-      display: block;
-      margin-top: 10px;
-      color: var(--gold-2);
-      font-size: 30px;
-      font-weight: 900;
-    }
-
-    .section-head { margin-bottom: 28px; }
-
-    .section-label {
-      color: var(--gold-2);
-      font-size: 13px;
-      font-weight: 900;
-      letter-spacing: 0.28em;
-      text-transform: uppercase;
-      margin-bottom: 12px;
-    }
-
-    .section-title {
-      font-size: clamp(36px, 3.2vw, 58px);
-      line-height: 1.05;
-      letter-spacing: -0.055em;
-      font-weight: 900;
-    }
-
-    .dp-muted { color: rgba(255,255,255,0.60); }
-
-    .grid-2 {
-      display: grid;
-      grid-template-columns: 1.05fr 0.95fr;
-      gap: 28px;
-      align-items: start;
-    }
-
-    .grid-card { padding: 30px; }
-
-    .card-title {
-      font-size: 28px;
-      font-weight: 900;
-      margin-bottom: 20px;
-    }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 16px;
-    }
-
+    .form-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
     .form-group label {
-      display: block;
-      margin-bottom: 8px;
-      color: rgba(255,255,255,0.62);
-      font-size: 13px;
-      font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
+      display:block; margin-bottom:8px; color:rgba(255,255,255,.62);
+      font-size:13px; font-weight:900; text-transform:uppercase; letter-spacing:.08em;
     }
 
     .dp-input, .dp-select, .dp-textarea {
-      width: 100%;
-      padding: 14px 16px;
-      border-radius: 16px;
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(177,116,255,0.24);
-      color: #fff;
-      outline: none;
-      resize: vertical;
+      width:100%; padding:14px 16px; border-radius:16px;
+      background:rgba(255,255,255,.08); border:1px solid rgba(177,116,255,.24);
+      color:#fff; outline:none; resize:vertical;
     }
 
-    .dp-input::placeholder,
-    .dp-textarea::placeholder {
-      color: rgba(255,255,255,0.42);
+    .dp-input::placeholder, .dp-textarea::placeholder { color:rgba(255,255,255,.42); }
+    .dp-input:focus, .dp-select:focus, .dp-textarea:focus {
+      border-color:var(--gold-2); box-shadow:0 0 0 3px rgba(244,184,63,.14);
     }
+    .dp-select option { color:#070022; }
 
-    .dp-input:focus,
-    .dp-select:focus,
-    .dp-textarea:focus {
-      border-color: var(--gold-2);
-      box-shadow: 0 0 0 3px rgba(244,184,63,0.14);
-    }
+    .actions-row { display:flex; gap:14px; flex-wrap:wrap; margin-top:18px; }
 
-    .dp-select option { color: #070022; }
-
-    .actions-row {
-      display: flex;
-      gap: 14px;
-      flex-wrap: wrap;
-      margin-top: 18px;
-    }
-
-    .list {
-      display: grid;
-      gap: 14px;
-    }
-
+    .list { display:grid; gap:14px; }
     .list-card {
-      padding: 20px;
-      border-radius: 22px;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(177,116,255,0.18);
+      padding:20px; border-radius:22px;
+      background:rgba(255,255,255,.06); border:1px solid rgba(177,116,255,.18);
     }
 
-    .list-head {
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      flex-wrap: wrap;
-      margin-bottom: 10px;
-    }
-
-    .list-title {
-      font-size: 20px;
-      font-weight: 900;
-    }
-
-    .meta {
-      display: flex;
-      gap: 14px;
-      flex-wrap: wrap;
-      color: rgba(255,255,255,0.58);
-      font-size: 13px;
-      line-height: 1.6;
-      margin-top: 8px;
-    }
+    .list-head { display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:10px; }
+    .list-title { font-size:20px; font-weight:900; }
+    .meta { display:flex; gap:14px; flex-wrap:wrap; color:rgba(255,255,255,.58); font-size:13px; line-height:1.6; margin-top:8px; }
 
     .badge-status {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 9px 12px;
-      border-radius: 999px;
-      font-size: 11px;
-      font-weight: 900;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      border: 1px solid rgba(255,255,255,0.14);
-      color: rgba(255,255,255,0.84);
-      background: rgba(255,255,255,0.06);
+      display:inline-flex; align-items:center; gap:8px; padding:9px 12px;
+      border-radius:999px; font-size:11px; font-weight:900;
+      letter-spacing:.08em; text-transform:uppercase;
+      border:1px solid rgba(255,255,255,.14);
+      color:rgba(255,255,255,.84); background:rgba(255,255,255,.06);
     }
 
     .empty-state {
-      padding: 34px;
-      border-radius: 22px;
-      border: 1px dashed rgba(177,116,255,0.30);
-      color: rgba(255,255,255,0.58);
-      text-align: center;
+      padding:34px; border-radius:22px;
+      border:1px dashed rgba(177,116,255,.30);
+      color:rgba(255,255,255,.58); text-align:center;
     }
 
     .message-box {
-      display: none;
-      margin-top: 16px;
-      padding: 14px 16px;
-      border-radius: 16px;
-      border: 1px solid rgba(177,116,255,0.24);
-      background: rgba(255,255,255,0.07);
-      color: #fff;
-      font-weight: 800;
+      display:none; margin-top:16px; padding:14px 16px; border-radius:16px;
+      border:1px solid rgba(177,116,255,.24);
+      background:rgba(255,255,255,.07); color:#fff; font-weight:800;
     }
-
-    .message-box.success {
-      display: block;
-      border-color: rgba(68,209,127,0.42);
-      color: #c7ffdd;
-    }
-
-    .message-box.error {
-      display: block;
-      border-color: rgba(255,107,107,0.48);
-      color: #ffd1d1;
-    }
-
-    .message-box.info {
-      display: block;
-      border-color: rgba(244,184,63,0.36);
-      color: var(--gold-1);
-    }
+    .message-box.success { display:block; border-color:rgba(68,209,127,.42); color:#c7ffdd; }
+    .message-box.error { display:block; border-color:rgba(255,107,107,.48); color:#ffd1d1; }
+    .message-box.info { display:block; border-color:rgba(244,184,63,.36); color:var(--gold-1); }
 
     .info-row {
-      display: grid;
-      grid-template-columns: 160px 1fr;
-      gap: 12px;
-      padding: 14px 0;
-      border-bottom: 1px solid rgba(177,116,255,0.14);
-      color: rgba(255,255,255,0.72);
+      display:grid; grid-template-columns:160px 1fr; gap:12px;
+      padding:14px 0; border-bottom:1px solid rgba(177,116,255,.14);
+      color:rgba(255,255,255,.72);
     }
-
-    .info-row:last-child { border-bottom: 0; }
-
-    .info-row span:first-child {
-      color: rgba(255,255,255,0.46);
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      font-size: 12px;
-    }
-
-    .info-row span:last-child {
-      font-weight: 900;
-      color: #fff;
-    }
+    .info-row:last-child { border-bottom:0; }
+    .info-row span:first-child { color:rgba(255,255,255,.46); font-weight:800; text-transform:uppercase; letter-spacing:.08em; font-size:12px; }
+    .info-row span:last-child { font-weight:900; color:#fff; }
 
     .pdf-dropzone {
-      border: 2px dashed rgba(177,116,255,0.30);
-      background: rgba(255,255,255,0.05);
-      border-radius: 24px;
-      padding: 28px;
-      text-align: center;
-      transition: 0.2s ease;
+      border:2px dashed rgba(177,116,255,.30);
+      background:rgba(255,255,255,.05);
+      border-radius:24px; padding:28px; text-align:center; transition:.2s ease;
+    }
+    .pdf-dropzone.dragover { border-color:var(--gold-2); background:rgba(244,184,63,.08); }
+
+    @media (max-width:1200px) {
+      .dashboard-hero, .grid-2 { grid-template-columns:1fr; }
+      .top-nav { justify-content:flex-start; overflow-x:auto; flex-wrap:nowrap; padding-bottom:4px; }
+      .top-nav::-webkit-scrollbar { display:none; }
     }
 
-    .pdf-dropzone.dragover {
-      border-color: var(--gold-2);
-      background: rgba(244,184,63,0.08);
-    }
-
-    @media (max-width: 1200px) {
-      .dashboard-hero, .grid-2 { grid-template-columns: 1fr; }
-      .top-nav { justify-content: flex-start; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; }
-      .top-nav::-webkit-scrollbar { display: none; }
-    }
-
-    @media (max-width: 900px) {
-      .dp-header { padding: 18px 22px; position: sticky; }
-      .dp-header-inner { align-items: flex-start; flex-direction: column; }
-      .brand img { width: 70px; height: 54px; }
-      .dashboard-shell { padding: 28px 22px 40px; }
-      .form-grid, .stat-grid { grid-template-columns: 1fr; }
-      .info-row { grid-template-columns: 1fr; }
+    @media (max-width:900px) {
+      .dp-header { padding:18px 22px; position:sticky; }
+      .dp-header-inner { align-items:flex-start; flex-direction:column; }
+      .brand img { width:70px; height:54px; }
+      .dashboard-shell { padding:28px 22px 40px; }
+      .form-grid, .stat-grid { grid-template-columns:1fr; }
+      .info-row { grid-template-columns:1fr; }
     }
   </style>
 </head>
 
 <body>
-
   <div class="loader" id="loader">
     <img src="logodp.png" alt="DhamanPay" class="loader-logo">
     <div class="loader-title">DhamanPay</div>
-    <div class="loader-bar-bg">
-      <div class="loader-bar"></div>
-    </div>
+    <div class="loader-bar-bg"><div class="loader-bar"></div></div>
   </div>
 
   <header class="dp-header">
@@ -608,50 +279,24 @@
   </header>
 
   <main class="dashboard-shell">
-
     <section id="homeView" class="view-panel active">
       <div class="dashboard-hero">
         <div>
-          <div class="dp-badge">
-            <i class="ph ph-truck"></i>
-            Courier Delivery Panel
-          </div>
-
-          <h1 class="dp-title">
-            Welcome, <span class="dp-gold-text" id="heroCourierName">Courier</span>
-          </h1>
-
-          <p class="dp-subtitle">
-            Manage escrow frozen orders, start shipping, update the delivery place manually,
-            submit proof, and complete the delivery flow.
-          </p>
+          <div class="dp-badge"><i class="ph ph-truck"></i> Courier Delivery Panel</div>
+          <h1 class="dp-title">Welcome, <span class="dp-gold-text" id="heroCourierName">Courier</span></h1>
+          <p class="dp-subtitle">Manage escrow frozen orders, start shipping, update the delivery place manually, submit proof, and complete the delivery flow.</p>
         </div>
 
         <div class="hero-card dp-glass">
-          <div class="logo-box">
-            <img src="logodp.png" alt="DhamanPay">
-          </div>
-
+          <div class="logo-box"><img src="logodp.png" alt="DhamanPay"></div>
           <h2 class="card-title">Delivery Overview</h2>
           <p class="dp-muted">Only orders ready for courier shipping are shown.</p>
 
           <div class="stat-grid">
-            <div class="stat-card">
-              <span>Escrow Frozen Orders</span>
-              <strong id="heroEscrowOrders">0</strong>
-            </div>
-            <div class="stat-card">
-              <span>Delivering</span>
-              <strong id="heroDelivering">0</strong>
-            </div>
-            <div class="stat-card">
-              <span>Delivered</span>
-              <strong id="heroDelivered">0</strong>
-            </div>
-            <div class="stat-card">
-              <span>Status</span>
-              <strong id="heroStatus">Online</strong>
-            </div>
+            <div class="stat-card"><span>Escrow Frozen Orders</span><strong id="heroEscrowOrders">0</strong></div>
+            <div class="stat-card"><span>Delivering</span><strong id="heroDelivering">0</strong></div>
+            <div class="stat-card"><span>Delivered</span><strong id="heroDelivered">0</strong></div>
+            <div class="stat-card"><span>Status</span><strong id="heroStatus">Online</strong></div>
           </div>
         </div>
       </div>
@@ -667,39 +312,18 @@
       <div class="grid-2">
         <div class="grid-card dp-glass">
           <h3 class="card-title">Available Orders</h3>
-
           <div id="ordersList" class="list"></div>
-
-          <div id="emptyOrders" class="empty-state" style="display:none;">
-            No escrow frozen orders available right now.
-          </div>
-
+          <div id="emptyOrders" class="empty-state" style="display:none;">No escrow frozen orders available right now.</div>
           <div id="ordersMessage" class="message-box"></div>
         </div>
 
         <div class="grid-card dp-glass">
           <h3 class="card-title">Selected Order Preview</h3>
-
-          <div class="info-row">
-            <span>Order</span>
-            <span id="previewOrderId">—</span>
-          </div>
-          <div class="info-row">
-            <span>Status</span>
-            <span id="previewOrderStatus">—</span>
-          </div>
-          <div class="info-row">
-            <span>Product</span>
-            <span id="previewProductName">—</span>
-          </div>
-          <div class="info-row">
-            <span>Amount</span>
-            <span id="previewAmount">—</span>
-          </div>
-          <div class="info-row">
-            <span>Address</span>
-            <span id="previewAddress">—</span>
-          </div>
+          <div class="info-row"><span>Order</span><span id="previewOrderId">—</span></div>
+          <div class="info-row"><span>Status</span><span id="previewOrderStatus">—</span></div>
+          <div class="info-row"><span>Product</span><span id="previewProductName">—</span></div>
+          <div class="info-row"><span>Amount</span><span id="previewAmount">—</span></div>
+          <div class="info-row"><span>Address</span><span id="previewAddress">—</span></div>
         </div>
       </div>
     </section>
@@ -730,12 +354,12 @@
                 </select>
               </div>
 
-              <div class="form-group" style="grid-column: 1 / -1;">
+              <div class="form-group" style="grid-column:1 / -1;">
                 <label>Current Place</label>
                 <input id="currentPlace" class="dp-input" type="text" placeholder="Example: Bab Ezzouar, Algiers">
               </div>
 
-              <div class="form-group" style="grid-column: 1 / -1;">
+              <div class="form-group" style="grid-column:1 / -1;">
                 <label>Update Note</label>
                 <textarea id="placeNote" class="dp-textarea" rows="4" placeholder="Example: Package is on the way."></textarea>
               </div>
@@ -751,23 +375,10 @@
 
         <div class="grid-card dp-glass">
           <h3 class="card-title">Live Text Preview</h3>
-
-          <div class="info-row">
-            <span>Order</span>
-            <span id="updatePreviewOrder">—</span>
-          </div>
-          <div class="info-row">
-            <span>Status</span>
-            <span id="updatePreviewStatus">—</span>
-          </div>
-          <div class="info-row">
-            <span>Place</span>
-            <span id="updatePreviewPlace">—</span>
-          </div>
-          <div class="info-row">
-            <span>Last Update</span>
-            <span id="updatePreviewTime">—</span>
-          </div>
+          <div class="info-row"><span>Order</span><span id="updatePreviewOrder">—</span></div>
+          <div class="info-row"><span>Status</span><span id="updatePreviewStatus">—</span></div>
+          <div class="info-row"><span>Place</span><span id="updatePreviewPlace">—</span></div>
+          <div class="info-row"><span>Last Update</span><span id="updatePreviewTime">—</span></div>
         </div>
       </div>
     </section>
@@ -776,12 +387,12 @@
       <div class="section-head">
         <div class="section-label">Proof</div>
         <h2 class="section-title">Submit Delivery Proof</h2>
-        <p class="dp-muted">Proof stays normal. Choose a PDF and submit proof for the order.</p>
+        <p class="dp-muted">Only PDF proof is accepted.</p>
       </div>
 
       <div class="grid-2">
         <div class="grid-card dp-glass">
-          <h3 class="card-title">Proof Upload</h3>
+          <h3 class="card-title">PDF Proof Upload</h3>
 
           <div class="form-grid">
             <div class="form-group">
@@ -798,7 +409,7 @@
               </select>
             </div>
 
-            <div class="form-group" style="grid-column: 1 / -1;">
+            <div class="form-group" style="grid-column:1 / -1;">
               <label>Description</label>
               <textarea id="proofDescription" class="dp-textarea" rows="4" placeholder="Describe the delivery proof."></textarea>
             </div>
@@ -807,14 +418,14 @@
           <div id="pdfDropzone" class="pdf-dropzone" style="margin-top:18px;">
             <p class="dp-muted">Drop PDF here or choose it manually.</p>
             <p style="margin-top:10px; font-weight:900;" id="pdfFileName">No PDF selected</p>
-            <input id="proofPdf" type="file" accept="application/pdf" hidden>
+            <input id="proofPdf" type="file" accept=".pdf,application/pdf" hidden>
             <div class="actions-row" style="justify-content:center;">
               <button type="button" id="choosePdfBtn" class="dp-ghost-btn">Choose PDF</button>
             </div>
           </div>
 
           <div class="actions-row">
-            <button type="button" id="submitProofBtn" class="dp-gold-btn">Submit Proof</button>
+            <button type="button" id="submitProofBtn" class="dp-gold-btn">Submit PDF Proof</button>
           </div>
 
           <div id="proofMessage" class="message-box"></div>
@@ -822,27 +433,11 @@
 
         <div class="grid-card dp-glass">
           <h3 class="card-title">Proof Preview</h3>
-
-          <div class="info-row">
-            <span>Order</span>
-            <span id="proofPrevOrder">—</span>
-          </div>
-          <div class="info-row">
-            <span>Type</span>
-            <span id="proofPrevKind">—</span>
-          </div>
-          <div class="info-row">
-            <span>File</span>
-            <span id="proofPrevFile">—</span>
-          </div>
-          <div class="info-row">
-            <span>Description</span>
-            <span id="proofPrevDesc">—</span>
-          </div>
-          <div class="info-row">
-            <span>Status</span>
-            <span id="proofPreviewBadge">Waiting</span>
-          </div>
+          <div class="info-row"><span>Order</span><span id="proofPrevOrder">—</span></div>
+          <div class="info-row"><span>Type</span><span id="proofPrevKind">—</span></div>
+          <div class="info-row"><span>File</span><span id="proofPrevFile">—</span></div>
+          <div class="info-row"><span>Description</span><span id="proofPrevDesc">—</span></div>
+          <div class="info-row"><span>Status</span><span id="proofPreviewBadge">Waiting</span></div>
         </div>
       </div>
     </section>
@@ -860,90 +455,27 @@
           <p class="dp-muted" id="profileRole">COURIER</p>
 
           <div style="margin-top:24px;">
-            <div class="info-row">
-              <span>ID</span>
-              <span id="profileCourierId">—</span>
-            </div>
-            <div class="info-row">
-              <span>Email</span>
-              <span id="profileEmail">—</span>
-            </div>
-            <div class="info-row">
-              <span>Phone</span>
-              <span id="profilePhone">—</span>
-            </div>
-            <div class="info-row">
-              <span>Company</span>
-              <span id="profileCompany">—</span>
-            </div>
-            <div class="info-row">
-              <span>Vehicle</span>
-              <span id="profileVehicle">—</span>
-            </div>
-            <div class="info-row">
-              <span>Rating</span>
-              <span id="profileRating">—</span>
-            </div>
+            <div class="info-row"><span>ID</span><span id="profileCourierId">—</span></div>
+            <div class="info-row"><span>Email</span><span id="profileEmail">—</span></div>
+            <div class="info-row"><span>Phone</span><span id="profilePhone">—</span></div>
+            <div class="info-row"><span>Company</span><span id="profileCompany">—</span></div>
+            <div class="info-row"><span>Vehicle</span><span id="profileVehicle">—</span></div>
+            <div class="info-row"><span>Rating</span><span id="profileRating">—</span></div>
           </div>
         </div>
 
         <div class="grid-card dp-glass">
           <h3 class="card-title">Courier Activity</h3>
-
           <div class="stat-grid">
-            <div class="stat-card">
-              <span>Escrow Orders</span>
-              <strong id="profileEscrowOrders">0</strong>
-            </div>
-            <div class="stat-card">
-              <span>Delivering</span>
-              <strong id="profileDelivering">0</strong>
-            </div>
-            <div class="stat-card">
-              <span>Delivered</span>
-              <strong id="profileDelivered">0</strong>
-            </div>
-            <div class="stat-card">
-              <span>Completed</span>
-              <strong id="profileCompleted">0</strong>
-            </div>
+            <div class="stat-card"><span>Escrow Orders</span><strong id="profileEscrowOrders">0</strong></div>
+            <div class="stat-card"><span>Delivering</span><strong id="profileDelivering">0</strong></div>
+            <div class="stat-card"><span>Delivered</span><strong id="profileDelivered">0</strong></div>
+            <div class="stat-card"><span>Completed</span><strong id="profileCompleted">0</strong></div>
           </div>
         </div>
       </div>
     </section>
-
   </main>
-
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      const navButtons = document.querySelectorAll(".view-nav-btn");
-      const views = document.querySelectorAll(".view-panel");
-
-      navButtons.forEach(function (btn) {
-        btn.addEventListener("click", function () {
-          const targetId = btn.getAttribute("data-view");
-
-          navButtons.forEach(function (b) {
-            b.classList.remove("active-nav");
-          });
-
-          views.forEach(function (view) {
-            view.classList.remove("active");
-          });
-
-          btn.classList.add("active-nav");
-
-          const target = document.getElementById(targetId);
-          if (target) target.classList.add("active");
-        });
-      });
-
-      setTimeout(function () {
-        const loader = document.getElementById("loader");
-        if (loader) loader.classList.add("hide");
-      }, 900);
-    });
-  </script>
 
   <script src="courier.js"></script>
 </body>

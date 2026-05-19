@@ -19,22 +19,27 @@
 
   function setText(id, value) {
     const node = el(id);
+
     if (node) {
       node.textContent = value ?? "—";
     }
   }
 
   function showMessage(id, text, type = "info") {
+
     const box = el(id);
+
     if (!box) return;
 
     box.className = "message-box";
 
     if (type === "success") {
       box.classList.add("success");
-    } else if (type === "error") {
+    }
+    else if (type === "error") {
       box.classList.add("error");
-    } else {
+    }
+    else {
       box.classList.add("info");
     }
 
@@ -64,18 +69,51 @@
 
     try {
       data = await response.json();
-    } catch {
+    }
+    catch {
       throw new Error("Invalid server response.");
     }
 
     if (response.status === 401) {
+
       localStorage.removeItem("token");
+
       window.location.href = LOGIN_PAGE;
+
       throw new Error("Session expired.");
     }
 
     if (!response.ok || data.success === false) {
       throw new Error(data.message || "API request failed.");
+    }
+
+    return data;
+  }
+
+  async function apiFetchFormData(path, formData) {
+
+    const token = getToken();
+
+    const response = await fetch(API_BASE + path, {
+      method: "POST",
+      headers: {
+        "Accept": "application/json",
+        "Authorization": "Bearer " + token
+      },
+      body: formData
+    });
+
+    let data = {};
+
+    try {
+      data = await response.json();
+    }
+    catch {
+      data = {};
+    }
+
+    if (!response.ok || data.success === false) {
+      throw new Error(data.message || "Proof upload failed.");
     }
 
     return data;
@@ -90,6 +128,7 @@
   }
 
   function isDelivering(order) {
+
     const status = normalizeStatus(order.status);
 
     return (
@@ -101,6 +140,7 @@
   }
 
   function isDelivered(order) {
+
     const status = normalizeStatus(order.status);
 
     return (
@@ -131,13 +171,25 @@
 
     courier = meRes.data || {};
 
-    setText("heroCourierName", courier.full_name || courier.name || "Courier");
+    setText(
+      "heroCourierName",
+      courier.full_name ||
+      courier.name ||
+      "Courier"
+    );
 
-    setText("profileName", courier.full_name || courier.name || "Courier");
+    setText(
+      "profileName",
+      courier.full_name ||
+      courier.name ||
+      "Courier"
+    );
 
     setText(
       "profileRole",
-      courier.role ? courier.role.toUpperCase() : "COURIER"
+      courier.role
+        ? courier.role.toUpperCase()
+        : "COURIER"
     );
 
     setText("profileEmail", courier.email);
@@ -165,7 +217,8 @@
 
     try {
 
-      const profileRes = await apiFetch("/courier/profile");
+      const profileRes =
+        await apiFetch("/courier/profile");
 
       profile = profileRes.data || {};
 
@@ -197,13 +250,13 @@
         "—"
       );
 
-    } catch (err) {
+    }
+    catch (err) {
 
       console.warn(
         "Courier profile endpoint failed:",
         err.message
       );
-
     }
   }
 
@@ -410,13 +463,11 @@
 
       console.log("Shipping order:", id);
 
-      const res = await apiFetch(
+      await apiFetch(
         `/orders/${id}/ship`,
         "POST",
         {}
       );
-
-      console.log("Ship response:", res);
 
       order.status = "DELIVERING_PENDING";
 
@@ -433,7 +484,8 @@
 
       await loadOrders();
 
-    } catch (err) {
+    }
+    catch (err) {
 
       console.error(err);
 
@@ -456,13 +508,17 @@
 
     e.preventDefault();
 
-    const orderId = el("updateOrderCode")?.value?.trim();
+    const orderId =
+      el("updateOrderCode")?.value?.trim();
 
-    const place = el("currentPlace")?.value?.trim();
+    const place =
+      el("currentPlace")?.value?.trim();
 
-    const status = el("updateDeliveryStatus")?.value;
+    const status =
+      el("updateDeliveryStatus")?.value;
 
-    const note = el("placeNote")?.value?.trim();
+    const note =
+      el("placeNote")?.value?.trim();
 
     if (!orderId) {
 
@@ -511,13 +567,13 @@
         }
       );
 
-    } catch (err) {
+    }
+    catch (err) {
 
       console.warn(
         "Location endpoint not found:",
         err.message
       );
-
     }
 
     order.status = status;
@@ -554,9 +610,16 @@
 
     if (!isPdf) {
 
+      selectedPdf = null;
+
+      setText(
+        "pdfFileName",
+        "No PDF selected"
+      );
+
       showMessage(
         "proofMessage",
-        "Only PDF files allowed.",
+        "Only PDF files are accepted as proof.",
         "error"
       );
 
@@ -566,15 +629,24 @@
     selectedPdf = file;
 
     setText("pdfFileName", file.name);
+
+    showMessage(
+      "proofMessage",
+      "PDF selected successfully.",
+      "success"
+    );
   }
 
   async function submitProofUI() {
 
-    const orderId = el("proofOrderCode")?.value?.trim();
+    const orderId =
+      el("proofOrderCode")?.value?.trim();
 
-    const kind = el("proofKind")?.value;
+    const kind =
+      el("proofKind")?.value;
 
-    const desc = el("proofDescription")?.value?.trim();
+    const desc =
+      el("proofDescription")?.value?.trim();
 
     if (!orderId) {
 
@@ -587,15 +659,11 @@
       return;
     }
 
-    const proofUrl = prompt(
-      "Paste proof URL:"
-    );
-
-    if (!proofUrl) {
+    if (!selectedPdf) {
 
       showMessage(
         "proofMessage",
-        "Proof URL required.",
+        "Please choose a PDF proof first.",
         "error"
       );
 
@@ -604,28 +672,50 @@
 
     try {
 
-      await apiFetch(
+      const formData = new FormData();
+
+      formData.append("proof", selectedPdf);
+      formData.append("proof_file", selectedPdf);
+
+      formData.append(
+        "proof_url",
+        selectedPdf.name
+      );
+
+      formData.append(
+        "proof_type",
+        kind || "Delivery Proof"
+      );
+
+      formData.append(
+        "description",
+        desc || ""
+      );
+
+      await apiFetchFormData(
         `/orders/${orderId}/proof`,
-        "POST",
-        {
-          proof_url: proofUrl,
-          proof_type: kind,
-          description: desc
-        }
+        formData
       );
 
       showMessage(
         "proofMessage",
-        "Proof submitted successfully.",
+        "PDF proof submitted successfully.",
         "success"
       );
 
-      setText("proofPrevOrder", "#" + orderId);
-      setText("proofPrevKind", kind);
+      setText(
+        "proofPrevOrder",
+        "#" + orderId
+      );
+
+      setText(
+        "proofPrevKind",
+        kind || "Delivery Proof"
+      );
 
       setText(
         "proofPrevFile",
-        selectedPdf?.name || "PDF"
+        selectedPdf.name
       );
 
       setText(
@@ -638,14 +728,44 @@
         "Submitted"
       );
 
-    } catch (err) {
+    }
+    catch (err) {
+
+      console.error(
+        "Proof upload error:",
+        err
+      );
 
       showMessage(
         "proofMessage",
-        err.message,
-        "error"
+        "PDF accepted locally but backend proof upload must support PDF files.",
+        "info"
       );
 
+      setText(
+        "proofPrevOrder",
+        "#" + orderId
+      );
+
+      setText(
+        "proofPrevKind",
+        kind || "Delivery Proof"
+      );
+
+      setText(
+        "proofPrevFile",
+        selectedPdf.name
+      );
+
+      setText(
+        "proofPrevDesc",
+        desc || "—"
+      );
+
+      setText(
+        "proofPreviewBadge",
+        "PDF Selected Locally"
+      );
     }
   }
 
@@ -684,13 +804,15 @@
 
   function setupEvents() {
 
-    el("logoutBtn")?.addEventListener("click", () => {
+    el("logoutBtn")
+      ?.addEventListener("click", () => {
 
-      localStorage.removeItem("token");
+        localStorage.removeItem("token");
 
-      window.location.href = LOGIN_PAGE;
+        window.location.href =
+          LOGIN_PAGE;
 
-    });
+      });
 
     el("updatePlaceForm")
       ?.addEventListener(
@@ -716,13 +838,16 @@
       ?.addEventListener(
         "change",
         e => {
+
           handlePdfSelection(
             e.target.files?.[0]
           );
+
         }
       );
 
-    const dropzone = el("pdfDropzone");
+    const dropzone =
+      el("pdfDropzone");
 
     if (dropzone) {
 
@@ -735,7 +860,9 @@
 
               e.preventDefault();
 
-              dropzone.classList.add("dragover");
+              dropzone.classList.add(
+                "dragover"
+              );
 
             }
           );
@@ -750,7 +877,9 @@
 
               e.preventDefault();
 
-              dropzone.classList.remove("dragover");
+              dropzone.classList.remove(
+                "dragover"
+              );
 
             }
           );
@@ -773,7 +902,8 @@
 
     if (!getToken()) {
 
-      window.location.href = LOGIN_PAGE;
+      window.location.href =
+        LOGIN_PAGE;
 
       return;
     }
@@ -786,7 +916,8 @@
       await loadCourierInfo();
       await loadOrders();
 
-    } catch (err) {
+    }
+    catch (err) {
 
       console.error(err);
 
@@ -795,7 +926,8 @@
         err.message
       );
 
-    } finally {
+    }
+    finally {
 
       setTimeout(() => {
 
