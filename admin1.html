@@ -2,446 +2,689 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
   <title>DhamanPay | Admin Dashboard</title>
 
-  <link rel="icon" type="image/png" href="logodp.png">
+  <link rel="icon" type="image/png" href="logo.png">
+
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
   <script src="api.js"></script>
 
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: Manrope, sans-serif;
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+    }
+
+    body{
+      font-family:"Manrope",sans-serif;
       background:
-        radial-gradient(circle at 20% 50%, rgba(118,42,190,.45), transparent 45%),
-        linear-gradient(135deg,#070022,#160044,#09002b);
-      color: white;
-      min-height: 100vh;
-    }
-    button,input,textarea { font: inherit; }
-    button { cursor: pointer; }
-
-    .dp-header {
-      position: sticky;
-      top: 0;
-      z-index: 20;
-      background: rgba(7,0,34,.9);
-      backdrop-filter: blur(18px);
-      padding: 18px 42px;
-      border-bottom: 1px solid rgba(177,116,255,.22);
-    }
-    .dp-header-inner {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 22px;
-      flex-wrap: wrap;
-    }
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-weight: 900;
-      letter-spacing: .12em;
-    }
-    .brand img {
-      width: 70px;
-      height: 55px;
-      object-fit: contain;
-    }
-    .top-nav {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-    .nav-btn {
-      border: 0;
-      padding: 10px 14px;
-      border-radius: 14px;
-      background: rgba(255,255,255,.06);
-      color: rgba(255,255,255,.75);
-      font-weight: 900;
-    }
-    .nav-btn.active,
-    .nav-btn:hover {
-      background: rgba(244,184,63,.14);
-      color: #f4b83f;
+      radial-gradient(circle at 20% 40%,rgba(126,50,220,.35),transparent 40%),
+      linear-gradient(135deg,#070022,#160044,#09002b);
+      color:#fff;
+      min-height:100vh;
     }
 
-    .dp-dashboard {
-      padding: 42px;
-      max-width: 1500px;
-      margin: auto;
+    button{
+      cursor:pointer;
+      font-family:inherit;
     }
 
-    .view { display: none; }
-    .view.active {
-      display: block;
-      animation: fadeUp .25s ease both;
-    }
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+    .dp-header{
+      position:sticky;
+      top:0;
+      z-index:100;
+      background:rgba(7,0,34,.88);
+      backdrop-filter:blur(18px);
+      border-bottom:1px solid rgba(177,116,255,.22);
+      padding:18px 40px;
     }
 
-    .hero {
-      display: grid;
-      grid-template-columns: 1.2fr .8fr;
-      gap: 24px;
-      align-items: stretch;
+    .dp-header-inner{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:20px;
+      flex-wrap:wrap;
     }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+
+    .brand img{
+      width:72px;
+      height:58px;
+      object-fit:contain;
+    }
+
+    .brand span{
+      font-size:18px;
+      font-weight:900;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+    }
+
+    .top-nav{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:center;
+    }
+
+    .nav-btn{
+      border:0;
+      padding:10px 14px;
+      border-radius:14px;
+      background:rgba(255,255,255,.05);
+      color:rgba(255,255,255,.75);
+      font-weight:900;
+      transition:.2s;
+    }
+
+    .nav-btn:hover,
+    .nav-btn.active{
+      background:rgba(244,184,63,.14);
+      color:#f4b83f;
+    }
+
+    .danger-btn{
+      border:1px solid rgba(255,107,107,.3);
+      background:rgba(255,107,107,.12);
+      color:#ffd1d1;
+      border-radius:14px;
+      padding:12px 18px;
+      font-weight:900;
+    }
+
+    .dashboard{
+      max-width:1600px;
+      margin:auto;
+      padding:40px;
+    }
+
+    .view{
+      display:none;
+    }
+
+    .view.active{
+      display:block;
+      animation:fade .25s ease;
+    }
+
+    @keyframes fade{
+      from{
+        opacity:0;
+        transform:translateY(10px);
+      }
+      to{
+        opacity:1;
+        transform:translateY(0);
+      }
+    }
+
+    .hero{
+      display:grid;
+      grid-template-columns:1.2fr .8fr;
+      gap:24px;
+      margin-bottom:24px;
+    }
+
     .panel,
     .stat-card,
-    .list-card {
-      background: rgba(255,255,255,.055);
-      border: 1px solid rgba(177,116,255,.22);
-      border-radius: 26px;
-      backdrop-filter: blur(20px);
-      box-shadow: 0 30px 80px rgba(0,0,0,.28);
-    }
-    .panel { padding: 28px; margin-bottom: 24px; }
-    .title {
-      font-size: clamp(38px,5vw,76px);
-      line-height: 1.05;
-      font-weight: 900;
-      letter-spacing: -.05em;
-    }
-    .gold {
-      color: #f4b83f;
-    }
-    .muted {
-      color: rgba(255,255,255,.62);
-      line-height: 1.7;
-      margin-top: 14px;
+    .list-card{
+      background:rgba(255,255,255,.05);
+      border:1px solid rgba(177,116,255,.22);
+      border-radius:28px;
+      backdrop-filter:blur(20px);
+      box-shadow:0 30px 80px rgba(0,0,0,.25);
     }
 
-    .grid-4 {
-      display: grid;
-      grid-template-columns: repeat(4,1fr);
-      gap: 16px;
-      margin: 24px 0;
-    }
-    .grid-2 {
-      display: grid;
-      grid-template-columns: repeat(2,1fr);
-      gap: 18px;
-    }
-    .stat-card {
-      padding: 22px;
-    }
-    .stat-card span {
-      color: rgba(255,255,255,.55);
-      font-size: 12px;
-      font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-    }
-    .stat-card strong {
-      display: block;
-      margin-top: 10px;
-      color: #f4b83f;
-      font-size: 28px;
-      font-weight: 900;
-      word-break: break-word;
+    .panel{
+      padding:28px;
     }
 
-    .section-title {
-      font-size: 38px;
-      font-weight: 900;
-      margin-bottom: 18px;
+    .title{
+      font-size:clamp(40px,5vw,82px);
+      line-height:1.05;
+      font-weight:900;
+      letter-spacing:-.05em;
     }
 
-    .list {
-      display: grid;
-      gap: 14px;
-    }
-    .list-card {
-      padding: 20px;
-    }
-    .list-head {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-bottom: 12px;
-    }
-    .list-title {
-      font-size: 20px;
-      font-weight: 900;
-    }
-    .meta {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      color: rgba(255,255,255,.62);
-      font-size: 13px;
-      line-height: 1.6;
+    .gold{
+      color:#f4b83f;
     }
 
-    .actions-row {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-top: 16px;
-    }
-    .dp-gold-btn {
-      border: 0;
-      border-radius: 15px;
-      padding: 13px 20px;
-      background: linear-gradient(100deg,#f9d56c,#f4b83f,#db9718);
-      color: #070022;
-      font-weight: 900;
-    }
-    .dp-ghost-btn {
-      border: 1px solid rgba(177,116,255,.35);
-      border-radius: 15px;
-      padding: 13px 20px;
-      background: rgba(255,255,255,.06);
-      color: white;
-      font-weight: 900;
-    }
-    .danger-btn {
-      border: 1px solid rgba(255,107,107,.35);
-      border-radius: 15px;
-      padding: 13px 20px;
-      background: rgba(255,107,107,.12);
-      color: #ffd1d1;
-      font-weight: 900;
+    .muted{
+      color:rgba(255,255,255,.62);
+      line-height:1.7;
+      margin-top:16px;
     }
 
-    .empty-state {
-      padding: 30px;
-      text-align: center;
-      border: 1px dashed rgba(177,116,255,.3);
-      border-radius: 22px;
-      color: rgba(255,255,255,.58);
+    .actions-row{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-top:22px;
     }
 
-    .message {
-      position: fixed;
-      left: 50%;
-      bottom: 24px;
-      transform: translateX(-50%);
-      z-index: 99;
-      min-width: 280px;
-      max-width: 620px;
-      padding: 15px 20px;
-      border-radius: 18px;
-      background: rgba(7,0,34,.95);
-      border: 1px solid rgba(177,116,255,.28);
-      font-weight: 900;
-      text-align: center;
-      white-space: pre-line;
-    }
-    .message.success { color: #c7ffdd; border-color: rgba(68,209,127,.45); }
-    .message.error { color: #ffd1d1; border-color: rgba(255,107,107,.5); }
-    .message.info { color: #f9d56c; border-color: rgba(244,184,63,.45); }
-    .hidden { display: none; }
-
-    .info-row {
-      display: grid;
-      grid-template-columns: 160px 1fr;
-      gap: 12px;
-      padding: 14px 0;
-      border-bottom: 1px solid rgba(177,116,255,.14);
-    }
-    .info-row span:first-child {
-      color: rgba(255,255,255,.48);
-      font-size: 12px;
-      font-weight: 900;
-      text-transform: uppercase;
-    }
-    .info-row span:last-child {
-      font-weight: 900;
+    .dp-gold-btn{
+      border:0;
+      border-radius:15px;
+      padding:14px 22px;
+      background:linear-gradient(100deg,#f9d56c,#f4b83f,#db9718);
+      color:#070022;
+      font-weight:900;
     }
 
-    @media (max-width: 1000px) {
-      .hero, .grid-2 { grid-template-columns: 1fr; }
-      .grid-4 { grid-template-columns: repeat(2,1fr); }
-      .dp-dashboard { padding: 24px; }
+    .dp-ghost-btn{
+      border:1px solid rgba(177,116,255,.3);
+      border-radius:15px;
+      padding:14px 22px;
+      background:rgba(255,255,255,.05);
+      color:#fff;
+      font-weight:900;
     }
-    @media (max-width: 600px) {
-      .grid-4 { grid-template-columns: 1fr; }
-      .dp-header { padding: 16px; }
+
+    .grid-4{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:16px;
+      margin-bottom:24px;
     }
+
+    .grid-2{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:18px;
+    }
+
+    .stat-card{
+      padding:22px;
+    }
+
+    .stat-card span{
+      display:block;
+      color:rgba(255,255,255,.55);
+      font-size:12px;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+
+    .stat-card strong{
+      display:block;
+      margin-top:10px;
+      color:#f4b83f;
+      font-size:30px;
+      font-weight:900;
+    }
+
+    .section-title{
+      font-size:38px;
+      font-weight:900;
+      margin-bottom:20px;
+    }
+
+    .list{
+      display:grid;
+      gap:14px;
+    }
+
+    .list-card{
+      padding:20px;
+    }
+
+    .list-head{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+
+    .list-title{
+      font-size:20px;
+      font-weight:900;
+    }
+
+    .meta{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      color:rgba(255,255,255,.62);
+      font-size:13px;
+      line-height:1.6;
+      margin-top:10px;
+    }
+
+    .info-row{
+      display:grid;
+      grid-template-columns:160px 1fr;
+      gap:12px;
+      padding:14px 0;
+      border-bottom:1px solid rgba(177,116,255,.12);
+    }
+
+    .info-row span:first-child{
+      color:rgba(255,255,255,.5);
+      text-transform:uppercase;
+      font-size:12px;
+      font-weight:900;
+    }
+
+    .info-row span:last-child{
+      font-weight:900;
+    }
+
+    .empty-state{
+      padding:30px;
+      text-align:center;
+      border:1px dashed rgba(177,116,255,.25);
+      border-radius:22px;
+      color:rgba(255,255,255,.58);
+    }
+
+    .message{
+      position:fixed;
+      bottom:22px;
+      left:50%;
+      transform:translateX(-50%);
+      z-index:999;
+      min-width:280px;
+      max-width:650px;
+      padding:15px 22px;
+      border-radius:18px;
+      background:rgba(7,0,34,.96);
+      border:1px solid rgba(177,116,255,.3);
+      font-weight:900;
+      text-align:center;
+      white-space:pre-line;
+    }
+
+    .message.success{
+      color:#c7ffdd;
+      border-color:rgba(68,209,127,.4);
+    }
+
+    .message.error{
+      color:#ffd1d1;
+      border-color:rgba(255,107,107,.45);
+    }
+
+    .message.info{
+      color:#f9d56c;
+      border-color:rgba(244,184,63,.4);
+    }
+
+    .hidden{
+      display:none;
+    }
+
+    @media(max-width:1100px){
+
+      .hero,
+      .grid-2{
+        grid-template-columns:1fr;
+      }
+
+      .grid-4{
+        grid-template-columns:repeat(2,1fr);
+      }
+
+    }
+
+    @media(max-width:700px){
+
+      .dashboard{
+        padding:22px;
+      }
+
+      .grid-4{
+        grid-template-columns:1fr;
+      }
+
+      .dp-header{
+        padding:18px;
+      }
+
+    }
+
   </style>
 </head>
 
 <body>
 
-  <header class="dp-header">
-    <div class="dp-header-inner">
-      <div class="brand">
-        <img src="logo.png" alt="DhamanPay">
-        <span>DhamanPay Admin</span>
-      </div>
+<header class="dp-header">
 
-      <nav class="top-nav" id="topViewNav"></nav>
+  <div class="dp-header-inner">
 
-      <button class="danger-btn" id="logoutBtn" type="button">Logout</button>
+    <div class="brand">
+      <img src="logo.png" alt="DhamanPay">
+      <span>DhamanPay Admin</span>
     </div>
-  </header>
 
-  <main class="dp-dashboard">
+    <nav class="top-nav" id="topViewNav"></nav>
 
-    <section class="view active" id="home-view">
-      <div class="hero">
-        <div class="panel">
-          <h1 class="title">Admin Control<br><span class="gold">DhamanPay Wallet</span></h1>
-          <p class="muted">
-            Manage escrow releases, collect the 1.8% platform fee, follow disputes,
-            and monitor all platform transactions.
-          </p>
-          <div class="actions-row">
-            <button class="dp-gold-btn" data-view-link="releases-view" type="button">Go to Releases</button>
-            <button class="dp-ghost-btn" data-view-link="orders-view" type="button">View Orders</button>
-          </div>
+    <button class="danger-btn" id="logoutBtn">
+      Logout
+    </button>
+
+  </div>
+
+</header>
+
+<main class="dashboard">
+
+  <!-- HOME -->
+  <section class="view active" id="home-view">
+
+    <div class="hero">
+
+      <div class="panel">
+
+        <h1 class="title">
+          Admin Control<br>
+          <span class="gold">DhamanPay Wallet</span>
+        </h1>
+
+        <p class="muted">
+          Manage releases, monitor escrow orders,
+          collect the 1.8% DhamanPay fee,
+          and supervise the platform.
+        </p>
+
+        <div class="actions-row">
+
+          <button
+            class="dp-gold-btn"
+            data-view-link="releases-view"
+          >
+            Go To Releases
+          </button>
+
+          <button
+            class="dp-ghost-btn"
+            data-view-link="orders-view"
+          >
+            View Orders
+          </button>
+
         </div>
 
-        <div class="panel">
-          <h2 class="section-title">Admin</h2>
-          <div class="info-row"><span>Name</span><span id="adminName">—</span></div>
-          <div class="info-row"><span>Email</span><span id="adminEmail">—</span></div>
-          <div class="info-row"><span>Phone</span><span id="adminPhone">—</span></div>
-          <div class="info-row"><span>Role</span><span id="adminRole">—</span></div>
-        </div>
       </div>
+
+      <div class="panel">
+
+        <h2 class="section-title">
+          Admin Profile
+        </h2>
+
+        <div class="info-row">
+          <span>Name</span>
+          <span id="adminName">—</span>
+        </div>
+
+        <div class="info-row">
+          <span>Email</span>
+          <span id="adminEmail">—</span>
+        </div>
+
+        <div class="info-row">
+          <span>Phone</span>
+          <span id="adminPhone">—</span>
+        </div>
+
+        <div class="info-row">
+          <span>Role</span>
+          <span id="adminRole">—</span>
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="grid-4">
+
+      <div class="stat-card">
+        <span>Total Orders</span>
+        <strong id="totalOrders">0</strong>
+      </div>
+
+      <div class="stat-card">
+        <span>Completed</span>
+        <strong id="completedOrders">0</strong>
+      </div>
+
+      <div class="stat-card">
+        <span>Disputes</span>
+        <strong id="disputesCount">0</strong>
+      </div>
+
+      <div class="stat-card">
+        <span>DhamanPay Wallet</span>
+        <strong id="adminWallet">0 DZD</strong>
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- OVERVIEW -->
+  <section class="view" id="overview-view">
+
+    <div class="panel">
+
+      <h2 class="section-title">
+        Overview
+      </h2>
 
       <div class="grid-4">
-        <div class="stat-card"><span>Total Orders</span><strong id="totalOrders">0</strong></div>
-        <div class="stat-card"><span>Completed</span><strong id="completedOrders">0</strong></div>
-        <div class="stat-card"><span>Disputes</span><strong id="disputesCount">0</strong></div>
-        <div class="stat-card"><span>DhamanPay Wallet</span><strong id="adminWallet">0 DZD</strong></div>
-      </div>
-    </section>
 
-    <section class="view" id="overview-view">
-      <div class="panel">
-        <h2 class="section-title">Overview</h2>
-        <div class="grid-4">
-          <div class="stat-card"><span>Total Orders</span><strong id="totalOrders2">Check Home</strong></div>
-          <div class="stat-card"><span>Completed Orders</span><strong id="completedOrders2">Check Home</strong></div>
-          <div class="stat-card"><span>Released Money</span><strong id="releasedMoney">0 DZD</strong></div>
-          <div class="stat-card"><span>Platform Fee 1.8%</span><strong id="adminWallet2">Auto</strong></div>
+        <div class="stat-card">
+          <span>Released Money</span>
+          <strong id="releasedMoney">0 DZD</strong>
         </div>
-      </div>
-    </section>
 
-    <section class="view" id="releases-view">
-      <div class="panel">
-        <h2 class="section-title">Release Payments</h2>
-        <p class="muted">
-          When admin releases an order, DhamanPay takes 1.8% as a platform fee.
-          The merchant receives the remaining 98.2%.
-        </p>
-      </div>
-
-      <div class="panel">
-        <h2 class="section-title">Orders Ready / All Orders</h2>
-        <div class="list" id="ordersList"></div>
-      </div>
-    </section>
-
-    <section class="view" id="disputes-view">
-      <div class="panel">
-        <h2 class="section-title">Disputes</h2>
-        <p class="muted">Dispute information loads from backend if your API returns it.</p>
-        <div class="empty-state">No dispute UI action added yet.</div>
-      </div>
-    </section>
-
-    <section class="view" id="orders-view">
-      <div class="panel">
-        <h2 class="section-title">All Orders</h2>
-        <p class="muted">Same order list used for admin release and fee preview.</p>
-        <div class="list" id="ordersListCopy">
-          <div class="empty-state">Open Release tab to see loaded orders.</div>
+        <div class="stat-card">
+          <span>Admin Wallet</span>
+          <strong id="adminWallet2">0 DZD</strong>
         </div>
-      </div>
-    </section>
 
-    <section class="view" id="users-view">
-      <div class="panel">
-        <h2 class="section-title">DhamanPay Wallet</h2>
-        <div class="grid-2">
-          <div class="stat-card">
-            <span>Admin / Platform Wallet</span>
-            <strong id="adminWalletBig">0 DZD</strong>
-          </div>
-          <div class="stat-card">
-            <span>Fee Rate</span>
-            <strong>1.8%</strong>
-          </div>
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- RELEASE -->
+  <section class="view" id="releases-view">
+
+    <div class="panel">
+
+      <h2 class="section-title">
+        Release Payments
+      </h2>
+
+      <p class="muted">
+        DhamanPay takes 1.8% from every released order.
+      </p>
+
+    </div>
+
+    <div class="panel">
+
+      <h2 class="section-title">
+        Orders
+      </h2>
+
+      <div class="list" id="ordersList"></div>
+
+    </div>
+
+  </section>
+
+  <!-- ORDERS -->
+  <section class="view" id="orders-view">
+
+    <div class="panel">
+
+      <h2 class="section-title">
+        Orders
+      </h2>
+
+      <div class="list" id="ordersListCopy">
+
+        <div class="empty-state">
+          Orders loaded in Release section.
         </div>
-        <p class="muted">
-          This frontend previews the fee. The backend must really add this fee to the admin wallet
-          inside <b>/orders/{id}/release</b>.
-        </p>
-      </div>
-    </section>
 
-    <section class="view" id="transactions-view">
-      <div class="panel">
-        <h2 class="section-title">Transactions</h2>
-        <p class="muted">Transactions are loaded in JS console for now.</p>
-        <div class="empty-state">Transaction list can be rendered here if backend returns clear fields.</div>
       </div>
-    </section>
 
-    <section class="view" id="rules-view">
-      <div class="panel">
-        <h2 class="section-title">Release Rule</h2>
-        <div class="list-card">
-          <div class="list-title">Fee formula</div>
-          <div class="meta">
-            <span>Fee = amount × 0.018</span>
-            <span>Merchant net = amount - fee</span>
-          </div>
+    </div>
+
+  </section>
+
+  <!-- WALLET -->
+  <section class="view" id="users-view">
+
+    <div class="panel">
+
+      <h2 class="section-title">
+        DhamanPay Wallet
+      </h2>
+
+      <div class="grid-2">
+
+        <div class="stat-card">
+          <span>Admin Wallet</span>
+          <strong id="adminWalletBig">0 DZD</strong>
         </div>
+
+        <div class="stat-card">
+          <span>Fee Rate</span>
+          <strong>1.8%</strong>
+        </div>
+
       </div>
-    </section>
 
-    <section class="view" id="proofs-view">
-      <div class="panel">
-        <h2 class="section-title">Proofs</h2>
-        <p class="muted">Proof PDFs are handled by courier/backend side.</p>
-        <div class="empty-state">No proof review UI added here yet.</div>
+    </div>
+
+  </section>
+
+  <!-- TRANSACTIONS -->
+  <section class="view" id="transactions-view">
+
+    <div class="panel">
+
+      <h2 class="section-title">
+        Transactions
+      </h2>
+
+      <div class="empty-state">
+        Transactions will appear here.
       </div>
-    </section>
 
-    <section class="view" id="profile-view">
-      <div class="panel">
-        <h2 class="section-title">Profile</h2>
-        <div class="info-row"><span>Name</span><span id="adminNameProfile">Same as home</span></div>
-        <div class="info-row"><span>Email</span><span id="adminEmailProfile">Same as home</span></div>
+    </div>
+
+  </section>
+
+  <!-- RULES -->
+  <section class="view" id="rules-view">
+
+    <div class="panel">
+
+      <h2 class="section-title">
+        Rules
+      </h2>
+
+      <div class="list-card">
+
+        <div class="list-title">
+          Fee Formula
+        </div>
+
+        <div class="meta">
+          <span>Fee = amount × 0.018</span>
+          <span>Merchant receives = amount - fee</span>
+        </div>
+
       </div>
-    </section>
 
-  </main>
+    </div>
 
-  <div class="message hidden" id="globalMessage"></div>
+  </section>
 
-  <script>
-    window.__apiReleaseOrder = window.releaseOrder;
+  <!-- DISPUTES -->
+  <section class="view" id="disputes-view">
 
-    window.releaseFunds = async function(orderId) {
-      if (!window.__apiReleaseOrder) {
-        throw new Error("Backend releaseOrder() function not found in api.js");
-      }
-      return window.__apiReleaseOrder(orderId, "Release with DhamanPay 1.8% fee");
-    };
+    <div class="panel">
 
-    if (!window.getUsers) {
-      window.getUsers = async function() {
-        return { data: [] };
-      };
-    }
-  </script>
+      <h2 class="section-title">
+        Disputes
+      </h2>
 
-  <script src="admin.js"></script>
+      <div class="empty-state">
+        No disputes yet.
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- PROOFS -->
+  <section class="view" id="proofs-view">
+
+    <div class="panel">
+
+      <h2 class="section-title">
+        Proofs
+      </h2>
+
+      <div class="empty-state">
+        Proof review section.
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- PROFILE -->
+  <section class="view" id="profile-view">
+
+    <div class="panel">
+
+      <h2 class="section-title">
+        Profile
+      </h2>
+
+      <div class="info-row">
+        <span>Name</span>
+        <span id="adminNameProfile">—</span>
+      </div>
+
+      <div class="info-row">
+        <span>Email</span>
+        <span id="adminEmailProfile">—</span>
+      </div>
+
+    </div>
+
+  </section>
+
+</main>
+
+<div class="message hidden" id="globalMessage"></div>
+
+<script src="admin.js"></script>
 
 </body>
 </html>

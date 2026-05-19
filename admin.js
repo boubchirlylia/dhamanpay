@@ -1,22 +1,14 @@
 // ===============================
 // DHAMANPAY ADMIN DASHBOARD JS
-// FINAL FIXED VERSION
+// FINAL VERSION: ORIGINAL LOGIC + ADMIN 1.8% FEE ONLY
 // ===============================
 
-
-// ===============================
-// STATE
-// ===============================
 let orders = [];
 let disputes = [];
 let users = [];
 let transactions = [];
 let adminProfile = null;
 
-
-// ===============================
-// HELPERS
-// ===============================
 function $(id) {
   return document.getElementById(id);
 }
@@ -28,12 +20,10 @@ function setText(id, value) {
 
 function showMessage(text, type = "success") {
   const msg = $("globalMessage");
-
   if (!msg) return;
 
   msg.textContent = text;
   msg.className = `message ${type}`;
-
   msg.classList.remove("hidden");
 
   setTimeout(() => {
@@ -45,12 +35,10 @@ function formatMoney(amount) {
   return `${Number(amount || 0).toFixed(2)} DZD`;
 }
 
-
 // ===============================
-// VIEW NAVIGATION
+// NAVIGATION
 // ===============================
 function buildNav() {
-
   const nav = $("topViewNav");
 
   const views = [
@@ -75,23 +63,15 @@ function buildNav() {
   }
 
   document.querySelectorAll("[data-view-link]").forEach(btn => {
-
-    btn.addEventListener("click", (e) => {
-      e.preventDefault();
+    btn.addEventListener("click", () => {
       goToView(btn.dataset.viewLink);
     });
-
   });
 }
 
 function goToView(id) {
-
   const view = document.getElementById(id);
-
-  if (!view) {
-    console.error("View not found:", id);
-    return;
-  }
+  if (!view) return;
 
   document.querySelectorAll(".view").forEach(v => {
     v.classList.remove("active");
@@ -103,163 +83,118 @@ function goToView(id) {
     btn.classList.toggle("active", btn.dataset.viewLink === id);
   });
 
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth"
-  });
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-
 // ===============================
-// LOAD ADMIN PROFILE
+// PROFILE
 // ===============================
 async function loadAdminProfile() {
-
   try {
-
     const res = await getMe();
-
     adminProfile = res.data;
-
-    console.log("ADMIN:", adminProfile);
 
     setText("adminName", adminProfile.full_name);
     setText("adminEmail", adminProfile.email);
     setText("adminPhone", adminProfile.phone);
     setText("adminRole", adminProfile.role);
 
+    setText("adminNameProfile", adminProfile.full_name);
+    setText("adminEmailProfile", adminProfile.email);
   } catch (e) {
-
     console.error("PROFILE ERROR:", e);
-
   }
 }
 
-
 // ===============================
-// LOAD ORDERS
+// ORDERS
 // ===============================
 async function loadOrders() {
-
   try {
-
     const res = await getOrders();
-
     orders = res.data || [];
-
-    console.log("ORDERS:", orders);
 
     renderOrders();
     renderStats();
-
   } catch (e) {
-
     console.error("ORDERS ERROR:", e);
-
+    showMessage(e.message || "Failed to load orders", "error");
   }
 }
 
-
-// ===============================
-// RENDER ORDERS
-// ===============================
 function renderOrders() {
-
   const container = $("ordersList");
-
   if (!container) return;
 
   container.innerHTML = "";
 
   if (!orders.length) {
-
-    container.innerHTML = `
-      <div class="empty-state">
-        No orders found
-      </div>
-    `;
-
+    container.innerHTML = `<div class="empty-state">No orders found</div>`;
     return;
   }
 
   orders.forEach(order => {
-
-    const fee = Number(order.amount || 0) * 0.018;
-    const merchantNet = Number(order.amount || 0) - fee;
+    const amount = Number(order.amount || 0);
+    const adminFee = amount * 0.018;
+    const merchantNet = amount - adminFee;
 
     const div = document.createElement("div");
-
     div.className = "list-card";
 
     div.innerHTML = `
       <div class="list-head">
-
         <div>
-          <div class="list-title">
-            Order #${order.id}
-          </div>
-
+          <div class="list-title">Order #${order.id}</div>
           <div class="meta">
-            <span>${order.product_name}</span>
+            <span>${order.product_name || order.product || "No product"}</span>
             <span>${order.status}</span>
           </div>
         </div>
-
       </div>
 
       <div class="meta">
-        <span>Total: ${formatMoney(order.amount)}</span>
-        <span>Fee: ${formatMoney(fee)}</span>
+        <span>Total: ${formatMoney(amount)}</span>
+        <span>DhamanPay Fee (1.8%): ${formatMoney(adminFee)}</span>
         <span>Merchant Receives: ${formatMoney(merchantNet)}</span>
       </div>
 
       <div class="actions-row">
-
         ${
-          order.status === "DELIVERED"
+          order.status === "DELIVERED" || order.status === "DELIVERED_PENDING"
             ? `
-              <button
-                class="dp-gold-btn"
-                onclick="releaseOrder(${order.id})"
-              >
+              <button class="dp-gold-btn" onclick="releaseOrderPayment(${order.id})">
                 Release
               </button>
             `
             : ""
         }
-
       </div>
     `;
 
     container.appendChild(div);
-
   });
 }
 
-
 // ===============================
-// RELEASE ORDER
+// RELEASE PAYMENT
 // ===============================
-async function releaseOrder(orderId) {
-
+async function releaseOrderPayment(orderId) {
   try {
-
-    const order = orders.find(o => o.id === orderId);
+    const order = orders.find(o => String(o.id) === String(orderId));
 
     if (!order) {
-      return showMessage("Order not found", "error");
+      showMessage("Order not found", "error");
+      return;
     }
 
     const amount = Number(order.amount || 0);
-
-    const fee = amount * 0.018;
-
-    const merchantNet = amount - fee;
+    const adminFee = amount * 0.018;
+    const merchantNet = amount - adminFee;
 
     const confirmed = confirm(
       `Release Payment?\n\n` +
       `Order Amount: ${formatMoney(amount)}\n` +
-      `DhamanPay Fee (1.8%): ${formatMoney(fee)}\n` +
+      `DhamanPay Fee (1.8%): ${formatMoney(adminFee)}\n` +
       `Merchant Receives: ${formatMoney(merchantNet)}`
     );
 
@@ -267,156 +202,121 @@ async function releaseOrder(orderId) {
 
     showMessage("Releasing payment...", "info");
 
-    // BACKEND RELEASE
-    await releaseFunds(orderId);
+    const backendRelease = window.__apiReleaseOrder || window.releaseOrder;
+
+    if (!backendRelease) {
+      throw new Error("releaseOrder function not found. Make sure api.js is loaded before admin.js");
+    }
+
+    await backendRelease(
+      orderId,
+      "Release with DhamanPay 1.8% fee"
+    );
 
     showMessage(
-      `Released Successfully\n` +
-      `Fee Collected: ${formatMoney(fee)}`,
+      `Payment released successfully\nFee preview: ${formatMoney(adminFee)}`,
       "success"
     );
 
     await loadOrders();
 
   } catch (e) {
-
     console.error("RELEASE ERROR:", e);
-
-    showMessage(
-      e.message || "Failed to release payment",
-      "error"
-    );
-
+    showMessage(e.message || "Release failed", "error");
   }
 }
-
 
 // ===============================
 // STATS
 // ===============================
 function renderStats() {
-
   let total = orders.length;
-
   let completed = 0;
   let disputesCount = 0;
   let releasedMoney = 0;
-  let adminFees = 0;
+  let adminWallet = 0;
 
   orders.forEach(order => {
+    const amount = Number(order.amount || 0);
 
     if (order.status === "COMPLETED") {
       completed++;
+      releasedMoney += amount;
+      adminWallet += amount * 0.018;
     }
 
-    if (order.status === "DISPUTED") {
+    if (order.status === "DISPUTED" || order.status === "DISPUTE_OPEN") {
       disputesCount++;
     }
-
-    releasedMoney += Number(order.amount || 0);
-
-    adminFees += Number(order.amount || 0) * 0.018;
-
   });
 
   setText("totalOrders", total);
+  setText("totalOrders2", total);
+
   setText("completedOrders", completed);
+  setText("completedOrders2", completed);
+
   setText("disputesCount", disputesCount);
+  setText("releasedMoney", formatMoney(releasedMoney));
 
-  setText(
-    "releasedMoney",
-    formatMoney(releasedMoney)
-  );
-
-  setText(
-    "adminWallet",
-    formatMoney(adminFees)
-  );
+  setText("adminWallet", formatMoney(adminWallet));
+  setText("adminWallet2", formatMoney(adminWallet));
+  setText("adminWalletBig", formatMoney(adminWallet));
 }
 
-
 // ===============================
-// LOAD USERS
+// USERS
 // ===============================
 async function loadUsers() {
-
   try {
+    if (!window.getUsers) return;
 
     const res = await getUsers();
-
     users = res.data || [];
-
-    console.log("USERS:", users);
-
   } catch (e) {
-
     console.error("USERS ERROR:", e);
-
   }
 }
 
-
 // ===============================
-// LOAD TRANSACTIONS
+// TRANSACTIONS
 // ===============================
 async function loadTransactions() {
-
   try {
+    if (!window.getTransactions) return;
 
     const res = await getTransactions();
-
     transactions = res.data || [];
-
-    console.log("TRANSACTIONS:", transactions);
-
   } catch (e) {
-
     console.error("TRANSACTIONS ERROR:", e);
-
   }
 }
-
 
 // ===============================
 // LOGOUT
 // ===============================
 function logout() {
-
   localStorage.removeItem("token");
-
   window.location.href = "login.html";
-
 }
-
 
 // ===============================
 // INIT
 // ===============================
 document.addEventListener("DOMContentLoaded", async () => {
-
   if (!getToken()) {
-
     window.location.href = "login.html";
-
     return;
   }
 
   buildNav();
-
   goToView("home-view");
 
   const logoutBtn = $("logoutBtn");
-
-  if (logoutBtn) {
-    logoutBtn.onclick = logout;
-  }
+  if (logoutBtn) logoutBtn.onclick = logout;
 
   await loadAdminProfile();
-
   await loadOrders();
-
   await loadUsers();
-
   await loadTransactions();
-
 });
