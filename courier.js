@@ -250,22 +250,9 @@
     renderOrders();
   }
 
-  function getEscrowOrders() {
-
-    return orders.filter(order => {
-
-      const status =
-        normalizeStatus(order.status);
-
-      return (
-        status === "ESCROW_FROZEN" ||
-        status === "FROZEN" ||
-        status === "PENDING_SHIPMENT" ||
-        status === "PAID"
-      );
-    });
-  }
-
+function getEscrowOrders() {
+  return orders;
+}
   function getDeliveringOrders() {
 
     return orders.filter(order => {
