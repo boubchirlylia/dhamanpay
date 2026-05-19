@@ -1,4 +1,3 @@
-
 const API_BASE = "https://dhamanpay.onrender.com/api";
 
 const token = localStorage.getItem("token");
@@ -19,17 +18,26 @@ function money(v) {
 let ALL_ORDERS = [];
 
 async function loadOrders() {
+
   try {
-    const res = await fetch(`${API_BASE}/orders`, { headers });
+
+    const res = await fetch(
+      `${API_BASE}/orders`,
+      { headers }
+    );
+
     const data = await res.json();
 
     ALL_ORDERS = data.data || [];
 
     renderOrders(ALL_ORDERS);
+
     calculateDhamanPayWallet(ALL_ORDERS);
 
   } catch (err) {
+
     console.error(err);
+
     alert("Failed to load orders");
   }
 }
@@ -43,12 +51,11 @@ function calculateDhamanPayWallet(orders) {
     const status =
       String(order.status || "").toUpperCase();
 
-    // ONLY MONEY REALLY RELEASED
-    const released =
+    // ONLY RELEASED MONEY
+    if (
       status === "COMPLETED" ||
-      status === "RELEASED";
-
-    if (released) {
+      status === "RELEASED"
+    ) {
 
       const amount =
         Number(order.amount || order.total_amount || 0);
@@ -58,7 +65,6 @@ function calculateDhamanPayWallet(orders) {
     }
   });
 
-  // SHOW IN HTML CARD
   const walletEl =
     document.getElementById("dhamanpayWallet");
 
@@ -68,6 +74,7 @@ function calculateDhamanPayWallet(orders) {
 }
 
 function renderOrders(orders) {
+
   const container =
     document.getElementById("ordersList") ||
     document.getElementById("ordersContainer");
@@ -75,19 +82,29 @@ function renderOrders(orders) {
   if (!container) return;
 
   if (!orders.length) {
+
     container.innerHTML = `
       <div class="empty-state">
         No orders found
       </div>
     `;
+
     return;
   }
 
   container.innerHTML = orders.map(o => {
-    const amount = Number(o.amount || o.total_amount || 0);
-    const fee = amount * 0.018;
-    const merchantGets = amount - fee;
-    const status = String(o.status || "").toUpperCase();
+
+    const amount =
+      Number(o.amount || o.total_amount || 0);
+
+    const fee =
+      amount * 0.018;
+
+    const merchantGets =
+      amount - fee;
+
+    const status =
+      String(o.status || "").toUpperCase();
 
     const canRelease =
       status === "DELIVERED" ||
@@ -96,8 +113,11 @@ function renderOrders(orders) {
 
     return `
       <div class="list-card">
+
         <div class="list-head">
+
           <div>
+
             <div class="list-title">
               Order #${o.id}
             </div>
@@ -107,16 +127,38 @@ function renderOrders(orders) {
               <span>Customer: ${o.customer_id || "—"}</span>
               <span>Merchant: ${o.merchant_id || "—"}</span>
             </div>
+
           </div>
+
         </div>
 
-        <div class="meta" style="margin-top:10px;">
-          <span>Total: ${money(amount)}</span>
-          <span>Admin Fee (1.8%): ${money(fee)}</span>
-          <span>Merchant Receives: ${money(merchantGets)}</span>
+        <div
+          class="meta"
+          style="margin-top:10px;"
+        >
+
+          <span>
+            Total:
+            ${money(amount)}
+          </span>
+
+          <span>
+            Admin Fee (1.8%):
+            ${money(fee)}
+          </span>
+
+          <span>
+            Merchant Receives:
+            ${money(merchantGets)}
+          </span>
+
         </div>
 
-        <div class="actions-row" style="margin-top:15px;">
+        <div
+          class="actions-row"
+          style="margin-top:15px;"
+        >
+
           ${
             canRelease
               ? `
@@ -136,41 +178,64 @@ function renderOrders(orders) {
                 </button>
               `
           }
+
         </div>
+
       </div>
     `;
+
   }).join("");
 }
 
 async function releaseOrder(orderId) {
+
   try {
-    const order = ALL_ORDERS.find(o => o.id == orderId);
+
+    const order =
+      ALL_ORDERS.find(o => o.id == orderId);
 
     if (!order) {
+
       alert("Order not found");
+
       return;
     }
 
-    const amount = Number(order.amount || order.total_amount || 0);
-    const fee = amount * 0.018;
-    const merchantGets = amount - fee;
+    const amount =
+      Number(order.amount || order.total_amount || 0);
+
+    const fee =
+      amount * 0.018;
+
+    const merchantGets =
+      amount - fee;
 
     const confirmRelease = confirm(
+
       `Release Order #${orderId}?\n\n` +
+
       `Total: ${money(amount)}\n` +
-      `Admin Fee: ${money(fee)}\n` +
-      `Merchant Gets: ${money(merchantGets)}`
+
+      `Admin Fee (1.8%): ${money(fee)}\n` +
+
+      `Merchant Receives: ${money(merchantGets)}`
     );
 
     if (!confirmRelease) return;
 
     const res = await fetch(
+
       `${API_BASE}/orders/${orderId}/release`,
+
       {
         method: "POST",
+
         headers,
+
         body: JSON.stringify({
+
           admin_fee: fee,
+
           merchant_receives: merchantGets
         })
       }
@@ -179,21 +244,40 @@ async function releaseOrder(orderId) {
     const data = await res.json();
 
     if (!res.ok) {
-      throw new Error(data.message || "Release failed");
+
+      throw new Error(
+        data.message || "Release failed"
+      );
     }
 
-    alert("Order released successfully");
+    // UPDATE FRONTEND
+    order.status = "COMPLETED";
 
-    await loadOrders();
+    // RECALCULATE WALLET
+    calculateDhamanPayWallet(ALL_ORDERS);
+
+    alert(
+      `Order released successfully\n\n` +
+      `DhamanPay earned ${money(fee)}`
+    );
+
+    renderOrders(ALL_ORDERS);
 
   } catch (err) {
+
     console.error(err);
-    alert(err.message || "Release failed");
+
+    alert(
+      err.message || "Release failed"
+    );
   }
 }
 
 window.releaseOrder = releaseOrder;
 
-document.addEventListener("DOMContentLoaded", () => {
-  loadOrders();
-});
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
+    loadOrders();
+  }
+);
