@@ -35,18 +35,32 @@ async function loadOrders() {
 }
 
 function calculateDhamanPayWallet(orders) {
+
   let total = 0;
 
   orders.forEach(order => {
-    const status = String(order.status || "").toUpperCase();
 
-    if (status === "COMPLETED" || status === "RELEASED") {
-      const amount = Number(order.amount || order.total_amount || 0);
+    const status =
+      String(order.status || "").toUpperCase();
+
+    // ONLY MONEY REALLY RELEASED
+    const released =
+      status === "COMPLETED" ||
+      status === "RELEASED";
+
+    if (released) {
+
+      const amount =
+        Number(order.amount || order.total_amount || 0);
+
+      // ADD 1.8%
       total += amount * 0.018;
     }
   });
 
-  const walletEl = document.getElementById("dhamanpayWallet");
+  // SHOW IN HTML CARD
+  const walletEl =
+    document.getElementById("dhamanpayWallet");
 
   if (walletEl) {
     walletEl.textContent = money(total);
